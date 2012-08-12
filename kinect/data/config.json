@@ -1,0 +1,25 @@
+{
+    "commande": "unuse",
+    "global":
+    {
+        "debug": false,
+        "graphic": true,
+        "localClient": false
+    },
+    "detect":
+    {
+        "handToTrack": 0,
+        "grabConvexity": 0.8,
+        "epsilon": 17.5,
+        "MaxHandRadius": 128,
+        "tolerance": 100,
+        "angleMax": 1,
+        "cutoffCoeff": 0.1,
+        "cycle": 10
+    },
+    "client":
+    {
+        "ip": "192.168.0.19",
+        "port": 3333
+    }
+}

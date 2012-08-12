@@ -1,0 +1,23 @@
+The Scene software and the SceneTuio clients 
+are free software licensed under the GPL license. 
+You can freely use this software for any private, academic 
+or commercial purpose, provided that you are willing 
+to publish the source code of your derived work upon request. 
+
+* The wxWidgets library (c) by Julian Smart, 
+  Robert Roebling et al is licensed under the
+  wxWindows Licence. See license.txt in the
+  project folder for its terms.
+  http://www.wxwidgets.org/
+
+* The oscpack library (c) by Ross Bencina
+  is licensed under a BSD style license. See
+  LICENSE in the project folder for its terms.
+  http://www.audiomulch.com/~rossb/code/oscpack/
+
+* The reacTIVision framework (c) by Martin Kaltenbrunner
+  is licensed under the GPL v2.0 license.
+  http://reactivision.sourceforge.net/
+
+
+

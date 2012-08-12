@@ -1,0 +1,4 @@
+TTS Solution
+    google (done !) translate to java with JMF
+    freeTTS (java)
+    espeak + mbrola + aplay
