@@ -24,8 +24,10 @@ public class DistributedStream implements Runnable {
 			
 			Thread t4 = new Thread(new Emission(out));
 			t4.start();
-			Thread t3 = new Thread(new Reception(in));
-			t3.start();
+            /*
+			 *Thread t3 = new Thread(new Reception(in));
+			 *t3.start();
+             */
 		
 		   
 		    

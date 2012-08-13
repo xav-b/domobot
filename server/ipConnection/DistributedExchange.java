@@ -27,8 +27,10 @@ public class DistributedExchange implements Runnable
             
             Thread t3 = new Thread(new Reception(in,identity));
             t3.start();
-            Thread t4 = new Thread(new Emission(out));
-            t4.start();
+            /*
+             *Thread t4 = new Thread(new Emission(out));
+             *t4.start();
+             */
 		} catch (IOException e) {
 			System.err.println("[SERVER] ** " + identity + " no longer connected to server");
 		}

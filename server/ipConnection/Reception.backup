@@ -1,3 +1,5 @@
+//import java.io.BufferedReader;
+//import java.io.IOException;
 import java.io.*;
 import java.util.Map;
 import java.util.Collection;
@@ -8,7 +10,6 @@ public class Reception implements Runnable
 {
 	private BufferedReader in;
 	private String message = null, login = null;
-    public Thread t;
 	
 	public Reception(BufferedReader in, String login)
     {
@@ -27,22 +28,31 @@ public class Reception implements Runnable
 				e.printStackTrace();
 			}
             Map data = new Gson().fromJson(message, Map.class);
-            System.out.println("Received: " + data);
+            System.out.println(data);
             if ( data.containsKey("exec") )
             {
+                System.out.println(data.size());
+                System.out.println("exec: " + data.get("exec"));
                 Collection c = data.values();
                 Set s = data.entrySet();
-                System.out.println("Size: " + data.size());
-                System.out.println("Values: " + c);
-                System.out.println("Entry set: " + s);
+                System.out.println(c);
+                System.out.println(s);
                 if ( data.get("exec").equals("process") ) 
                 {
-                    System.out.println("Running " + data.get("process") + " in " + data.get("wd"));
-                    t = new Thread(new ProcessThread((String)data.get("process"), (String)data.get("wd")));
-                    t.start();
+                    // Here a thread running process
+                    try 
+                    {
+                        Process proc = Runtime.getRuntime().exec((String)(data.get("value")));
+                        DataInputStream procOutput = new DataInputStream(proc.getInputStream());
+                        while ( (lineTmp = procOutput.readLine()) != null )
+                            System.out.println(lineTmp);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
                 }
                 else if ( data.get("exec").equals("intern") ){
-                    if (data.get("process").equals("end"))
+                    if (data.get("value").equals("end"))
                         listening = false;
                 }
 		    }

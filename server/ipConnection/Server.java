@@ -23,6 +23,3 @@ public class Server
 		}
 	}
 }
-
-//TODO Handling each side exiting (cf sdz on closing threads)
-//TODO Problem (?) when talking to multiple clients 

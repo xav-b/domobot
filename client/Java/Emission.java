@@ -15,20 +15,35 @@ public class Emission implements Runnable
 
 	public void run() 
     {
+        boolean listening = true;
 		sc = new Scanner(System.in);
-        message = 
-            "{"
-            + "'exec' : '../kinect/Tracker/KinectTuio',"
-            + "'id' : 2"
-            + "}";
-        System.out.println(message);
-		  
-	    //while(true){
-        //    System.out.println("Cmd >");
-        //    message = sc.nextLine();
+        //String message = 
+            //"{"
+            //+ "'exec' : '../kinect/Tracker/KinectTuio',"
+            //+ "'id' : 2"
+            //+ "}";
+		
+	    while(listening){
+            System.out.print("[Client] exec: ");
+            String exec = sc.nextLine();
+            System.out.print("[Client] process: ");
+            String process = sc.nextLine();
+            System.out.print("[Client] wd: ");
+            String wd = sc.nextLine();
+            String message = 
+                "{'exec' : '"
+                + exec
+                + "', 'process' : '"
+                + process
+                + "', 'wd' : '"
+                + wd
+                + "' }";
+            System.out.println(message);
             out.println(message);
             out.flush();
-		//}
+            if ( process.equals("end") )
+                listening = false;
+		}
+        System.out.println("Ending conversation.");
 	}
 }
-

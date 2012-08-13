@@ -86,7 +86,7 @@ public class BluetoothThread implements DiscoveryListener {
                  */
                 System.out.println("Processing device: " + rd.getFriendlyName(true));
                 if ( rd.getFriendlyName(true).equals(deviceToProcess) ) {
-                    t = new Thread(new BluetoothTargetHandler(rd, deviceToProcess));
+                    t = new Thread(new BluetoothTargetHandler(rd, deviceToProcess, "Movement detection"));
 					t.start();
                 }
             }
