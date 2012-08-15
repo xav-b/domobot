@@ -113,9 +113,9 @@ void XN_CALLBACK_TYPE GestureProgressHandler(xn::GestureGenerator& generator, co
 
 
 // xml to initialize OpenNI
-#define SAMPLE_XML_PATH "/home/xavier/dev/projects/DomoThink/kinect/Tracker/data/Sample-Tracking.xml"
+#define SAMPLE_XML_PATH "/home/xavier/dev/projects/Akane/kinect/data/Sample-Tracking.xml"
 // json to configure the process and algo
-#define CONFIG_JSON_PATH "/home/xavier/dev/projects/DomoThink/kinect/Tracker/data/config.json"
+#define CONFIG_JSON_PATH "/home/xavier/dev/projects/Akane/kinect/data/config.json"
 typedef struct handTracked handTracked;
 struct handTracked {
     XnVector3D position;
@@ -243,7 +243,6 @@ int main(int argc, char ** argv)
         // Prepare data for opencv
         g_pHand->getPosition(rh, handToTrack);
         Mat mat(frameSize, CV_16UC1, (unsigned char *)g_DepthGenerator.GetDepthMap());
-        /*
         if ( g_pHand->getContour(mat, rh, handContour, globalConf["debug"], detectConf["epsilon"], detectConf["maxHandRadius"], detectConf["tolerance"]) ) {
             bool grasp = g_pHand->computeConvex(handContour) > detectConf["grabConvexity"];
             int thickness = grasp ? CV_FILLED : 3;
@@ -258,21 +257,22 @@ int main(int argc, char ** argv)
             // ---- TUIO transaction ---------------------------------------------------------
             time = TuioTime::getSessionTime();
             tuio->initFrame(time);
-            for (unsigned int i = 0; i < fingerTips.size(); i++) {
-                float cursorX = (float(fingerTips[i].x) - xMin) / (xMax - xMin);
-                float cursorY = (float(fingerTips[i].y) - yMin) / (yMax - yMin);
-                float cursorZ = depthMat.at<float>(fingerTips[i].x, fingerTips[i].y);
-                TuioObject* cursor = tuio->getClosestTuioObject(cursorX, cursorY);
-                if ( cursor == NULL || cursor->getTuioTime() == time || abs(cursorX - cursor->getX()) > 0.015 )
-                    tuio->addTuioObject(i+1, cursorX, cursorY, cursorZ);
-                else  
-                    tuio->updateTuioObject(cursor, cursorX, cursorY, cursorZ);
-            }
+            //for (unsigned int i = 0; i < fingerTips.size(); i++) {
+                //float cursorX = (float(fingerTips[i].x) - xMin) / (xMax - xMin);
+                //float cursorY = (float(fingerTips[i].y) - yMin) / (yMax - yMin);
+                //float cursorZ = depthMat.at<float>(fingerTips[i].x, fingerTips[i].y);
+                //TuioObject* cursor = tuio->getClosestTuioObject(cursorX, cursorY);
+                //if ( cursor == NULL || cursor->getTuioTime() == time || abs(cursorX - cursor->getX()) > 0.015 )
+                    //tuio->addTuioObject(i+1, cursorX, cursorY, cursorZ);
+                //else  
+                    //tuio->updateTuioObject(cursor, cursorX, cursorY, cursorZ);
+            //}
             float cursorX = (rh[0] - xMin) / (xMax - xMin);
             float cursorY = (rh[1] - yMin) / (yMax - yMin);
             float cursorZ = rh[2]/10;
             TuioObject* cursor = tuio->getClosestTuioObject(cursorX, cursorY);
-            if ( cursor == NULL || cursor->getTuioTime() == time || (cursorX - cursor->getX()) > 0.006 )
+            //if ( cursor == NULL || cursor->getTuioTime() == time || (cursorX - cursor->getX()) > 0.006 )
+            if ( cursor == NULL || cursor->getTuioTime() == time)
                 tuio->addTuioObject(0, cursorX, cursorY, cursorZ);
             else  
                 tuio->updateTuioObject(cursor, cursorX, cursorY, cursorZ);
@@ -281,7 +281,6 @@ int main(int argc, char ** argv)
             tuio->commitFrame();
             // -------------------------------------------------------------------------------
         }
-        */
         putText(depthMatBgr, trackedInfos, Point(rh[0]-50,rh[1]-50), FONT_HERSHEY_TRIPLEX, 1, Scalar(0, 0, 0, 0), 2);
         if ( globalConf["graphic"] )
             imshow( "depthMatBgr", depthMatBgr );

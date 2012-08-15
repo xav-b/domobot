@@ -14,14 +14,14 @@ public class Client
         {	
             System.out.println("[CLIENT] Connection request");
             socket = new Socket(clientIp, clientPort);
-            //System.out.println("Connected to server, authentification :");
             
-            t1 = new Thread(new Connection(socket));
+            t1 = new Thread(new DistributedClient(socket));
             t1.start();	
         } catch (UnknownHostException e) {
             System.err.println("[CLIENT] ** Unable to connect: "+socket.getLocalAddress());
 	    } catch (IOException e) {
 	        System.err.println("[CLIENT] ** No listening server on port "+socket.getLocalPort());
 	    }
+        System.out.println("Ending client process");
 	}
 }

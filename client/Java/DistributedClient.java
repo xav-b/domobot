@@ -2,17 +2,16 @@ import java.net.*;
 import java.util.Scanner;
 import java.io.*;
 
-public class Connection implements Runnable 
+public class DistributedClient implements Runnable 
 {
 	private Socket socket = null;
-	public static Thread t2;
 	public static String identity = null;
 	private PrintWriter out = null;
 	private BufferedReader in = null;
 	private Scanner sc = null;
 	private boolean connect = false;
 	
-	public Connection(Socket s)
+	public DistributedClient(Socket s)
     {
 		socket = s;
 	}
@@ -21,12 +20,13 @@ public class Connection implements Runnable
 		try {
             out = new PrintWriter(socket.getOutputStream());
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));	
-            sc = new Scanner(System.in);
+            //sc = new Scanner(System.in);
 		
             while(!connect ){
                 // Send a code for identity authentification (or command)
-                System.out.println(in.readLine());
-                identity = sc.nextLine();
+                //System.out.println(in.readLine());
+                //identity = sc.nextLine();
+                identity = "test";
                 out.println(identity);
                 out.flush();
                 
@@ -38,8 +38,10 @@ public class Connection implements Runnable
 			        System.err.println("[CLIENT] ** Access denied"); 
 		        }
 		    }
-			t2 = new Thread(new DistributedStream(socket));
-			t2.start();
+			Thread t1 = new Thread(new Emission(out));
+            t1.start();
+            Thread t2 = new Thread(new Reception(in));
+            t2.start();
 		} catch (IOException e) {	
 			System.err.println("[CLIENT] ** No server responding ");
 		}

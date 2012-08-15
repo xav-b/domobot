@@ -1,6 +1,7 @@
-import java.io.IOException;
+import java.io.*;
 import java.io.PrintWriter;
 import java.util.Scanner;
+import java.util.NoSuchElementException;
 
 
 public class Emission implements Runnable 
@@ -24,26 +25,43 @@ public class Emission implements Runnable
             //+ "}";
 		
 	    while(listening){
-            System.out.print("[Client] exec: ");
-            String exec = sc.nextLine();
-            System.out.print("[Client] process: ");
-            String process = sc.nextLine();
-            System.out.print("[Client] wd: ");
-            String wd = sc.nextLine();
-            String message = 
-                "{'exec' : '"
-                + exec
-                + "', 'process' : '"
-                + process
-                + "', 'wd' : '"
-                + wd
-                + "' }";
-            System.out.println(message);
+            //System.out.print("[Client] exec: ");
+            //String exec = sc.nextLine();
+            //System.out.print("[Client] process: ");
+            //String process = sc.nextLine();
+            //System.out.print("[Client] wd: ");
+            //String wd = sc.nextLine();
+            //String message = 
+                //"{'exec' : '"
+                //+ exec
+                //+ "', 'process' : '"
+                //+ process
+                //+ "', 'wd' : '"
+                //+ wd
+                //+ "' }";
+            String message = getCommand("command.json");
+            System.out.println("Message: " + message);
             out.println(message);
             out.flush();
-            if ( process.equals("end") )
-                listening = false;
+            message = sc.nextLine();
+            out.println(message);
+            out.flush();
+            //if ( process.equals("end") )
+            listening = false;
 		}
         System.out.println("Ending conversation.");
 	}
+
+    private static String getCommand(String cmdFile)
+    {
+        String message = "";
+        try {
+            Scanner sc = new Scanner(new File(cmdFile));
+            while ( sc.hasNext() )
+                message += sc.nextLine();
+        } catch(FileNotFoundException e) {
+            System.err.println("[Client] ** Command file not found");
+        }
+        return message;
+    }
 }

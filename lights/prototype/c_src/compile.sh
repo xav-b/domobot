@@ -1,6 +1,7 @@
 #!/bin/sh
 
-SRC="stalker_pde"
+#SRC="stalker_pde"
+SRC="simpleStalkerIno"
 
 echo "Moving extension .c to .ino..."
 cp $SRC.cpp ../$SRC.ino

@@ -3,7 +3,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.io.*;
 
-public class Authentification implements Runnable 
+public class DistributedServer implements Runnable 
 {
 	private Socket socket;
 	private PrintWriter out = null;
@@ -11,9 +11,9 @@ public class Authentification implements Runnable
 	private String identity =  null;
     private static String identityFile = "identity.txt";
 	public boolean authentifier = false;
-	public Thread t2;
+	//public Thread t1, t2;
 	
-	public Authentification(Socket s)
+	public DistributedServer(Socket s)
     {
 		 socket = s;
 	}
@@ -25,8 +25,8 @@ public class Authentification implements Runnable
 			out = new PrintWriter(socket.getOutputStream());
 			
 		    while(!authentifier){		
-                out.println("[SERVER] Provide your identity code");
-                out.flush();
+                //out.println("[SERVER] Provide your identity code");
+                //out.flush();
                 identity = in.readLine();
 
                 if(isValid(identity)){
@@ -36,12 +36,16 @@ public class Authentification implements Runnable
                     authentifier = true;	
                 }
                 else {out.println("[SERVER] ** identity error"); out.flush();}
-             }
-                t2 = new Thread(new DistributedExchange(socket,identity));
-                t2.start();
+            }
+            /* Identification succeeded, opening conversation */
+            //Thread t1 = new Thread(new Reception(in, identity));
+            Thread t1 = new Thread(new Reception(socket, identity));
+            t1.start();
+            //Thread t2 = new Thread(new Emission(out, identity));
+            //t2.start();
                 
 		} catch (IOException e) {
-			System.err.println("[SERVER] ** " + identity + " not responding");
+			System.err.println("[SERVER] ** " + identity + " not responding or no longer connected");
 		}
 	}
 	

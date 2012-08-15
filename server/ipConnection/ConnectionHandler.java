@@ -14,17 +14,18 @@ public class ConnectionHandler implements Runnable
 	
 	public void run() 
     {		
+        boolean listening = true;
 		try {
-			while(true) {
+			while(listening) {
                 socket = socketserver.accept();
                 System.out.println("[SERVER] Client connection request");
                 
-                t1 = new Thread(new Authentification(socket));
+                t1 = new Thread(new DistributedServer(socket));
                 t1.start();
+                listening = false;
 			}
 		} catch (IOException e) {
 			System.err.println("[SERVER] ** Erreur serveur");
 		}
 	}
 }
-

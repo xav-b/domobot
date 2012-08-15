@@ -13,14 +13,15 @@ public class Reception implements Runnable
 	
 	public void run() 
     {	
-		while(true){
+        boolean listening = true;
+		while(listening){
 	        try 
             {
 			    message = in.readLine();
-			    System.out.println("Server > " +message);
-			
+			    System.out.println("Server > " + message);
+                if ( message.equals("ended") )
+			        listening = false;
 		    } catch (IOException e) {
-				
 				e.printStackTrace();
 			}
 		}

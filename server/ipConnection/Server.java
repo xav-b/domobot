@@ -9,8 +9,8 @@ public class Server
 
     public static void main(String[] args) 
     {		
-        /*
-         *Thread handling server disponibility
+        /**
+         * Thread handling server disponibility
          */
 	    try {
 		    ss = new ServerSocket(port);
@@ -21,5 +21,10 @@ public class Server
 		} catch (IOException e) {
 			System.err.println("[SERVER] ** Port " + ss.getLocalPort() + " busy.");
 		}
+
+        /**
+         * Bluetooth thread, connecting to lightBot, waiting for a movement detection signal
+         * Beware: Both can access Kinect process at the same time
+         */
 	}
 }

@@ -3,7 +3,7 @@
     "global":
     {
         "debug": false,
-        "graphic": true,
+        "graphic": false,
         "localClient": false
     },
     "detect":
@@ -19,7 +19,7 @@
     },
     "client":
     {
-        "ip": "192.168.0.19",
+        "ip": "127.0.0.1",
         "port": 3333
     }
 }
