@@ -3,7 +3,7 @@
     "global":
     {
         "debug": false,
-        "graphic": false,
+        "graphic": true,
         "localClient": false
     },
     "detect":
@@ -15,7 +15,8 @@
         "tolerance": 100,
         "angleMax": 1,
         "cutoffCoeff": 0.1,
-        "cycle": 10
+        "cycle": 10,
+        "fingerDistinct": 0.1
     },
     "client":
     {

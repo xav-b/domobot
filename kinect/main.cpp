@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <list>
 // Headers for OpenNI
 #include <XnOpenNI.h>
 #include <XnCppWrapper.h>
@@ -203,6 +204,7 @@ int main(int argc, char ** argv)
         detectConf["angleMax"] = pt.get("detect.angleMax", 1);
         detectConf["cutoffCoeff"] = pt.get("detect.cutoffCoeff", 0.1f);
         detectConf["cycle"] = pt.get("detect.cycle", 20);
+        detectConf["fingerDistinct"] = pt.get("detect.fingerDistinct", 0.01);
         handToTrack = pt.get("detect.handToTrack", 0);
         printf("[DEBUG] Done.\n");
     }
@@ -257,28 +259,47 @@ int main(int argc, char ** argv)
             // ---- TUIO transaction ---------------------------------------------------------
             time = TuioTime::getSessionTime();
             tuio->initFrame(time);
-            //for (unsigned int i = 0; i < fingerTips.size(); i++) {
-                //float cursorX = (float(fingerTips[i].x) - xMin) / (xMax - xMin);
-                //float cursorY = (float(fingerTips[i].y) - yMin) / (yMax - yMin);
-                //float cursorZ = depthMat.at<float>(fingerTips[i].x, fingerTips[i].y);
-                //TuioObject* cursor = tuio->getClosestTuioObject(cursorX, cursorY);
-                //if ( cursor == NULL || cursor->getTuioTime() == time || abs(cursorX - cursor->getX()) > 0.015 )
-                    //tuio->addTuioObject(i+1, cursorX, cursorY, cursorZ);
-                //else  
-                    //tuio->updateTuioObject(cursor, cursorX, cursorY, cursorZ);
-            //}
+            std::list<TuioObject*> objects = tuio->getTuioObjects();
+            int objects_ptr = objects.size();
+            for (unsigned int i = 0; i < fingerTips.size(); i++) {
+                float cursorX = (float(fingerTips[i].x) - xMin) / (xMax - xMin);
+                float cursorY = (float(fingerTips[i].y) - yMin) / (yMax - yMin);
+                float cursorZ = depthMat.at<float>(fingerTips[i].x, fingerTips[i].y);
+                TuioObject* cursor = tuio->getClosestTuioObject(cursorX, cursorY);
+                if ( cursor == NULL || cursor->getTuioTime() == time || abs(cursorX - cursor->getX()) > detectConf["fingerDistinct"] ) {
+                    if ( objects.size() < 6 ) {
+                        tuio->addTuioObject(i+1, cursorX, cursorY, cursorZ);
+                        cout << "Create: " << i+1 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
+                    }
+                    else
+                        cout << "Tried creation: " << i+1 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
+                }
+                else  {
+                    tuio->updateTuioObject(cursor, cursorX, cursorY, cursorZ);
+                    cout << "Update: " << i+1 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
+                }
+            }
             float cursorX = (rh[0] - xMin) / (xMax - xMin);
             float cursorY = (rh[1] - yMin) / (yMax - yMin);
             float cursorZ = rh[2]/10;
             TuioObject* cursor = tuio->getClosestTuioObject(cursorX, cursorY);
-            //if ( cursor == NULL || cursor->getTuioTime() == time || (cursorX - cursor->getX()) > 0.006 )
-            if ( cursor == NULL || cursor->getTuioTime() == time)
-                tuio->addTuioObject(0, cursorX, cursorY, cursorZ);
-            else  
+            if ( cursor == NULL || cursor->getTuioTime() == time || (cursorX - cursor->getX()) > detectConf["fingerDistinct"] ) {
+                if ( objects.size() < 6 ) {
+                    tuio->addTuioObject(0, cursorX, cursorY, cursorZ);
+                    cout << "Create main: " << 0 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
+                }
+                else
+                    cout << "Tried creation main: " << 0 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
+            }
+            else  {
                 tuio->updateTuioObject(cursor, cursorX, cursorY, cursorZ);
+                cout << "Update main: " << 0 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
+            }
             tuio->stopUntouchedMovingObjects();
             tuio->removeUntouchedStoppedObjects();
             tuio->commitFrame();
+            objects = tuio->getTuioObjects();
+            cout << "Objects ptr: " << objects.size() << " / "<< objects_ptr << endl << endl;
             // -------------------------------------------------------------------------------
         }
         putText(depthMatBgr, trackedInfos, Point(rh[0]-50,rh[1]-50), FONT_HERSHEY_TRIPLEX, 1, Scalar(0, 0, 0, 0), 2);
@@ -298,7 +319,7 @@ int main(int argc, char ** argv)
 //TODO gHand->getDepthPoint(x, y), associer un id à chaque doigt, paramètres TUIO en fichier de conf, passer en tuioobject ou tuio3D, utiliser TuioTime pour benchmark
 
 //TODO Configuration file (global functions (like printing stuff), segment algo and control) + Compilation conditionnelle (DEBUG/REALEASE ?)
-//TODO Deportation de calcul (clustering et cartes graphiques à terme)
+//TODO Deportation de calcul (server, clustering et cartes graphiques à terme)
 //TODO Mark when an object is tracked -> two hands (activable ? utilité ?)
 //TODO GUI smockin' interface (with PrintSession, affichage et controls, processing)
 //TODO Touch tests et gestion des touchs en bord d'écran

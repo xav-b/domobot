@@ -18,21 +18,24 @@ public class TuioTouchpad implements TuioListener {
 		if(ypos<0) ypos=0; if(ypos>height) ypos=height;
 		
 		long tobjId = tobj.getSymbolID();
-		System.out.println("Symbol n° " + tobjId);
-		if (mouse<0 && tobjId == 0) {
+		System.out.println("Create Symbol n° " + tobjId);
+		if ( mouse<0 && tobjId == 0 ) {
+            System.out.println("Creating Mouse controller");
 			mouse = tobjId;
 			handDepth = tobj.getAngle();
-			System.out.println("handDepth " + handDepth);
+			System.out.println("Cursor creation handDepth: " + handDepth);
 			if (robot!=null) robot.mouseMove(xpos,ypos);
 		}
-		/*else {
-			if (tobjId == 1) {
+		else {
+			if (tobjId == 2) {
+                System.out.println("Releasing left button");
 				if (robot!=null) robot.mouseRelease(InputEvent.BUTTON1_MASK);
 			}
-			else if (tobjId == 2) {
+			else if (tobjId == 3) {
+                System.out.println("Releasing right button");
 				if (robot!=null) robot.mouseRelease(InputEvent.BUTTON3_MASK);
 			}
-		}*/
+		}
 	}
 
 	public void updateTuioObject(TuioObject tobj) {
@@ -58,23 +61,25 @@ public class TuioTouchpad implements TuioListener {
 	public void removeTuioObject(TuioObject tobj) {
 		long tobjId = tobj.getSymbolID();
 		if (tobjId == mouse) {
-			mouse=-1;
-		} /*
-		else if (tobjId == 1) {
+			mouse = -1;
+		} 
+		else if (tobjId == 2) {
+                System.out.println("Left click !");
 			if (robot!=null) robot.mousePress(InputEvent.BUTTON1_MASK);
 		}
-		else if (tobjId == 2) {
+		else if (tobjId == 3) {
+                System.out.println("Right click !");
 			if (robot!=null) robot.mousePress(InputEvent.BUTTON3_MASK);
-		}*/
+		}
 		
 	}
 	
 	public TuioTouchpad() {
-		try { robot = new Robot(); }
-		catch (Exception e) {
-			System.out.println("failed to initialize mouse robot");
-			System.exit(0);
-		}
+		//try { robot = new Robot(); }
+		//catch (Exception e) {
+			//System.out.println("failed to initialize mouse robot");
+			//System.exit(0);
+		//}
 		
 		width  = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth();
 		height = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight();
@@ -87,8 +92,8 @@ public class TuioTouchpad implements TuioListener {
 	public void refresh(TuioTime bundleTime) {}
 
 
-	public static void main(String argv[]) {
-	
+	public static void main(String argv[]) 
+    {
 		int port = 3333;
  
 		if (argv.length==1) {
@@ -99,7 +104,7 @@ public class TuioTouchpad implements TuioListener {
  		TuioTouchpad trackpad = new TuioTouchpad();
 		TuioClient client = new TuioClient(port);
 
-		System.out.println("listening to TUIO messages at port "+port);
+		System.out.println("listening to TUIO messages at port " + port);
 		client.addTuioListener(trackpad);
 		client.connect();
 	}
