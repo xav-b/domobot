@@ -1,21 +1,12 @@
 #include "XEventsEmulation.h"
 
 using namespace std;
-using boost::asio::ip::tcp;
-
-tcp::iostream m_server(SERVER_IP, SERVER_PORT); 
 
 XEventsEmulation::XEventsEmulation() {
     for (int i = 0; i < AVERAGE_BUFFER; i++) {
         xCoordinatesBuffer[i] = 0;
         yCoordinatesBuffer[i] = 0;
     }
-    //string line("None");
-	//m_server(SERVER_IP, SERVER_PORT); 
-	//getline(m_server, line); 
-	//cout << "Connecting to server: " << line << endl;
-    //if ( line == "OK" ) 
-        //euh ..?
 }
 
 void XEventsEmulation::calibrateScreen() {
@@ -91,14 +82,4 @@ int XEventsEmulation::keyHit(string key, string type) {
     else
         return 2;
     return value_r;
-}
-
-int XEventsEmulation::processingUI( float rh[3], vector<cv::Point> fingerTips ) 
-{
-    ostringstream ss;
-    if ( fingerTips.size() == 5 ) {
-        ss << fingerTips[0].x << " " << fingerTips[0].y  << " " << fingerTips[1].x << " " << fingerTips[1].y << " " << fingerTips[2].x << " " << fingerTips[2].y  << " " << fingerTips[3].x << " " << fingerTips[3].y << " " << fingerTips[4].x << " " << fingerTips[4].y << " " << (int)rh[0] << " " << (int)rh[1] << " " << (int)(rh[2]*100);
-        m_server << ss.str();
-    }
-	return 0;
 }

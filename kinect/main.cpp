@@ -9,21 +9,20 @@
 
 // Header for NITE
 #include "XnVNite.h"
-// local headers
-#include "lib/HandTracker.cpp"
-#include "lib/XEventsEmulation.cpp"
 // Boost headers
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-//#include "/home/xavier/lib/boost_1_49_0/boost/chrono.hpp"
-using namespace boost::property_tree;
 // OpenCV headers
 #include <cv.h>
 #include <highgui.h>
+// local headers
+#include "lib/HandTracker.cpp"
+#include "lib/XnCommunication.cpp"
+//#include "lib/XEventsEmulation.cpp"
+
+using namespace std;
 using namespace cv;
-// TUIO protocol
-#include <TuioServer.h>
-using namespace TUIO;
+using namespace boost::property_tree;
 
 #define CHECK_RC(rc, what)											\
 	if (rc != XN_STATUS_OK)											\
@@ -214,29 +213,15 @@ int main(int argc, char ** argv)
     }
 
     // **** TUIO Init
-    const bool localClientMode = pt.get("global.localClient", true);
-    string clientIp = pt.get("client.ip", "127.0.0.1");
-    int clientPort = pt.get("client.port", 3333);
-    TuioServer* tuio;
-    if ( localClientMode )
-        tuio = new TuioServer();
-    else
-        tuio = new TuioServer(clientIp.c_str(),clientPort,false);
-    TuioTime time;
-    //tuio->setVerbose(globalConf["debug"]);
-    int xMin = 0;
-    int xMax = 640;
-    int yMin = 0;
-    int yMax = 480;
-    int id = 3;
+    XnCommunication network(pt.get("client.ip", "127.0.0.1"), pt.get("client.port", 3333));
+    network.tuioInit(globalConf["debug"]);
     //----------------------------------------------------------------------------------------
     float rh[3];
     vector<Point> handContour, fingerTips;
     unsigned char shade;
     Scalar color;
-    XEventsEmulation interface;
-    string trackedInfos("Tracked hand [X: 532 Y:125]\nConfidence: 0.8\nTime: 5.6s");
-	// Mainloop
+    string trackedInfos("");
+
 	while ( !xnOSWasKeyboardHit() )
 	{
 		g_Context.WaitOneUpdateAll(g_DepthGenerator);
@@ -251,58 +236,15 @@ int main(int argc, char ** argv)
             circle(depthMatBgr, Point(rh[0], rh[1]), 10, color, thickness);
             // Detection
             g_pHand->detectFingerTips(handContour, fingerTips, &depthMatBgr, detectConf["angleMax"], detectConf["cutoffCoeff"]);
-
-            // Using boost::asio network interface
-            //if ( interface.processingUI(rh, fingerTips) != 0 )
-                //printf("[ERROR] Processing\n");
+            g_pHand->fingerTipsIdentification(fingerTips, &depthMatBgr);
 
             // ---- TUIO transaction ---------------------------------------------------------
-            time = TuioTime::getSessionTime();
-            tuio->initFrame(time);
-            std::list<TuioObject*> objects = tuio->getTuioObjects();
-            int objects_ptr = objects.size();
-            for (unsigned int i = 0; i < fingerTips.size(); i++) {
-                float cursorX = (float(fingerTips[i].x) - xMin) / (xMax - xMin);
-                float cursorY = (float(fingerTips[i].y) - yMin) / (yMax - yMin);
-                float cursorZ = depthMat.at<float>(fingerTips[i].x, fingerTips[i].y);
-                TuioObject* cursor = tuio->getClosestTuioObject(cursorX, cursorY);
-                if ( cursor == NULL || cursor->getTuioTime() == time || abs(cursorX - cursor->getX()) > detectConf["fingerDistinct"] ) {
-                    if ( objects.size() < 6 ) {
-                        tuio->addTuioObject(i+1, cursorX, cursorY, cursorZ);
-                        cout << "Create: " << i+1 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
-                    }
-                    else
-                        cout << "Tried creation: " << i+1 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
-                }
-                else  {
-                    tuio->updateTuioObject(cursor, cursorX, cursorY, cursorZ);
-                    cout << "Update: " << i+1 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
-                }
-            }
-            float cursorX = (rh[0] - xMin) / (xMax - xMin);
-            float cursorY = (rh[1] - yMin) / (yMax - yMin);
-            float cursorZ = rh[2]/10;
-            TuioObject* cursor = tuio->getClosestTuioObject(cursorX, cursorY);
-            if ( cursor == NULL || cursor->getTuioTime() == time || (cursorX - cursor->getX()) > detectConf["fingerDistinct"] ) {
-                if ( objects.size() < 6 ) {
-                    tuio->addTuioObject(0, cursorX, cursorY, cursorZ);
-                    cout << "Create main: " << 0 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
-                }
-                else
-                    cout << "Tried creation main: " << 0 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
-            }
-            else  {
-                tuio->updateTuioObject(cursor, cursorX, cursorY, cursorZ);
-                cout << "Update main: " << 0 << "  " << cursorX << "  " << cursorY << "  " << cursorZ << endl;
-            }
-            tuio->stopUntouchedMovingObjects();
-            tuio->removeUntouchedStoppedObjects();
-            tuio->commitFrame();
-            objects = tuio->getTuioObjects();
-            cout << "Objects ptr: " << objects.size() << " / "<< objects_ptr << endl << endl;
+            network.tuioBlobUpdate(rh);
+            network.tuioBlobUpdate(g_pHand);
+            network.tuioCommit();
             // -------------------------------------------------------------------------------
         }
-        putText(depthMatBgr, trackedInfos, Point(rh[0]-50,rh[1]-50), FONT_HERSHEY_TRIPLEX, 1, Scalar(0, 0, 0, 0), 2);
+        //putText(depthMatBgr, trackedInfos, Point(rh[0]-50,rh[1]-50), FONT_HERSHEY_TRIPLEX, 1, Scalar(0, 0, 0, 0), 2);
         if ( globalConf["graphic"] )
             imshow( "depthMatBgr", depthMatBgr );
         int k = cvWaitKey(detectConf["cycle"]);
@@ -316,13 +258,12 @@ int main(int argc, char ** argv)
     //std::cout << ms.count() << "ms\n";
 }
 
-//TODO gHand->getDepthPoint(x, y), associer un id à chaque doigt, paramètres TUIO en fichier de conf, passer en tuioobject ou tuio3D, utiliser TuioTime pour benchmark
 
-//TODO Configuration file (global functions (like printing stuff), segment algo and control) + Compilation conditionnelle (DEBUG/REALEASE ?)
-//TODO Deportation de calcul (server, clustering et cartes graphiques à terme)
-//TODO Mark when an object is tracked -> two hands (activable ? utilité ?)
-//TODO GUI smockin' interface (with PrintSession, affichage et controls, processing)
-//TODO Touch tests et gestion des touchs en bord d'écran
-//TODO xdotool and lot of XEventEmulation changes, some more controls like pause or quit
-//TODO Optimiser tout ça (avant tout mettre des tests en place, rapport ?)
-//TODO S'interesser à PCL
+//TODO Un réseau de neuronne pour la reconnaissance de doigt
+//TODO Le filtrage de l'image pour éliminer le bruit
+//TODO Un buffer de "souvenir" pour éliminer les erreurs d'une frame
+//TODO Le multithreading (openmp, pthread), voir gpu (cuda, opencl)
+//TODO Une classe TuioServer avec notamment:
+//          - TuioInit(string configFile)
+//          - TuioUpdate(Finger blob[i])
+//          - TuioCommit()

@@ -7,9 +7,11 @@
 
 #ifndef XNV_POINT_DRAWER_H_
 #define XNV_POINT_DRAWER_H_
-
+ 
+#include <cmath>
 #include <map>
 #include <list>
+#include <vector>
 #include <XnCppWrapper.h>
 #include <XnVPointControl.h>
 
@@ -25,6 +27,21 @@ typedef enum
 	QUICK_REFOCUS
 } SessionState;
 
+typedef struct 
+{
+    int hand;
+    int id;
+    bool contact;
+    XnPoint3D coordinates;
+    float discriminantAngle;
+    float length;
+    float lastGap;
+    float nextGap;
+    float angle;
+    float lastAngle;
+    float nextAngle;
+} Blob;
+
 std::string PrintSessionState(SessionState eState);
 /**
  * This is a point control, which stores the history of every point
@@ -32,6 +49,8 @@ std::string PrintSessionState(SessionState eState);
  */
 class XnVHandTracker : public XnVPointControl
 {
+    friend class XnCommunication;
+
 public:
 	XnVHandTracker(xn::DepthGenerator depthGenerator);
 	virtual ~XnVHandTracker();
@@ -80,12 +99,26 @@ public:
      */
     void detectFingerTips(const vector<Point> &handContour, vector<Point> &fingerTips, Mat *debugFrame, float angleMax, float cutoffCoeff);
 
+    /*
+     * Classification des doigts détectés
+     */
+    int fingerTipsIdentification(vector<Point> &fingerTips, Mat *debugFrame);
+
+    /*
+     * Estimation de l'identité du doigt à partir de la structure remplie
+     */
+    int getFingerId(Blob blob, int lastId, int probableId);
+
 protected:
 	XnBool IsTouching(XnUInt32 nID) const;
 	std::list<XnUInt32> m_TouchingFOVEdge;
 	xn::DepthGenerator m_DepthGenerator;
     std::map<XnUInt32, XnPoint3D> m_handsPosition;
     Scalar m_color;
+
+    XnPoint3D m_pointTracked;
+    std::vector<Point> m_poignet;
+    std::vector<Blob> Fingers;
 };
 
 #endif

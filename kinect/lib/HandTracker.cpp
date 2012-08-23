@@ -8,6 +8,7 @@
 #include "HandTracker.h"
 #include "XnVDepthMessage.h"
 #include <XnVHandPointContext.h>
+#include <sstream>
 
 #define MAX_DEPTH 10000
 
@@ -155,6 +156,10 @@ std::string PrintSessionState(SessionState eState)
 
 
 bool XnVHandTracker::getContour(const Mat mat, const float *v, vector<Point> &handContour, bool debug = false, const double epsilon = 17.5, const int maxHandRadius = 128, int distance = 100, float maxDepth = 3000.0f) {
+    m_pointTracked.X = v[0];
+    m_pointTracked.Y = v[1];
+    m_pointTracked.Z = v[2]*1000.0f;
+
     mat.copyTo(depthMat);
     depthMat.convertTo(depthMat8, CV_8UC1, 255.0f / maxDepth);
     cvtColor(depthMat8, depthMatBgr, CV_GRAY2BGR);
@@ -217,6 +222,7 @@ bool XnVHandTracker::getContour(const Mat mat, const float *v, vector<Point> &ha
 
 void XnVHandTracker::detectFingerTips(const vector<Point> &handContour, vector<Point> &fingerTips, Mat *debugFrame = NULL, float angleMax = 1, float cutoffCoeff = 0.1f) {
     fingerTips.clear();
+    m_poignet.clear();
 	Mat handContourMat(handContour);
 	double area = cv::contourArea(handContourMat);
 
@@ -242,45 +248,66 @@ void XnVHandTracker::detectFingerTips(const vector<Point> &handContour, vector<P
 
 		Point v1 = handContour[sdx] - handContour[idx];
 		Point v2 = handContour[pdx] - handContour[idx];
-
 		float angle = acos( (v1.x*v2.x + v1.y*v2.y) / (norm(v1) * norm(v2)) );
+
+        //if ( j != 0 ) {
+            //Point v3 = handContour[idx] - handContour[pdx];
+            //Point v4 = handContour[hull[j-1]] - handContour[pdx];
+            //float angle2 = acos( (v3.x*v4.x + v3.y*v4.y) / (norm(v3) * norm(v4)) );
+            //std::cout << j << " - Angle between fingers: " << angle2;
+            //std::cout << " - distance x: " << handContour[idx].x - handContour[hull[j-1]].x;
+            //std::cout << j << " - distance y: " << handContour[idx].y - handContour[hull[j-1]].y << std::endl;
+        //}
 
 		// low interior angle + within upper 90% of region -> we got a finger
 		if (angle < angleMax && handContour[idx].y < cutoff) {
+            //std::cout << j << " - Finger, angle: " << angle;
+            //std::cout << ", x: " << handContour[idx].x;
+            //std::cout << ", y: " << handContour[idx].y << std::endl;
 			int u = handContour[idx].x;
 			int v = handContour[idx].y;
 
 			fingerTips.push_back(Point2i(u,v));
 			
-			if (debugFrame) { // draw fingertips
-				cv::circle(*debugFrame, handContour[idx], 10, debugFingerTipColor, -1);
-			}
+            //if (debugFrame) { // draw fingertips
+                //cv::circle(*debugFrame, handContour[idx], 10, debugFingerTipColor, -1);
+            //}
 		}
+        else {
+            if ( handContour[idx].y > m_pointTracked.Y ) {
+                int u = handContour[idx].x;
+                int v = handContour[idx].y;
+                m_poignet.push_back(Point2i(u,v));
+                //std::cout << j << " - Wrong angle under cutoff: " << angle;
+                //std::cout << ", x: " << handContour[idx].x;
+                //std::cout << ", y: " << handContour[idx].y << std::endl;
+            }
+        }
 	}
-
+    std::cout << std::endl;
 	if (debugFrame) {
 		// draw cutoff threshold
-		cv::line(*debugFrame, Point(0, cutoff), Point(640, cutoff), debugFingerTipColor);
+        cv::line(*debugFrame, Point(0, cutoff), Point(640, cutoff), debugFingerTipColor);
 
 		// draw approxCurve
-		for (int j=0; j<handContour.size(); j++) {
-			cv::circle(*debugFrame, handContour[j], 10, debugFingerTipColor);
-			if (j != 0) {
-				cv::line(*debugFrame, handContour[j], handContour[j-1], debugFingerTipColor);
-			} else {
-				cv::line(*debugFrame, handContour[0], handContour[handContour.size()-1], debugFingerTipColor);
-			}
-		}
+        //for (int j=0; j<handContour.size(); j++) {
+            //cv::circle(*debugFrame, handContour[j], 10, debugFingerTipColor);
+            //if (j != 0) {
+                //cv::line(*debugFrame, handContour[j], handContour[j-1], debugFingerTipColor);
+            //} else {
+                //cv::line(*debugFrame, handContour[0], handContour[handContour.size()-1], debugFingerTipColor);
+            //}
+        //}
 
-		// draw approxCurve hull
-		for (int j=0; j<hull.size(); j++) {
-			cv::circle(*debugFrame, handContour[hull[j]], 10, debugFingerTipColor, 3);
-			if(j == 0) {
-				cv::line(*debugFrame, handContour[hull[j]], handContour[hull[hull.size()-1]], debugFingerTipColor);
-			} else {
-				cv::line(*debugFrame, handContour[hull[j]], handContour[hull[j-1]], debugFingerTipColor);
-			}
-		}
+		// dr"w approxCurve hull
+        //for (int j=0; j<hull.size(); j++) {
+            //cv::circle(*debugFrame, handContour[hull[j]], 10, debugFingerTipColor, 3);
+            //if(j == 0) {
+                //cv::line(*debugFrame, handContour[hull[j]], handContour[hull[hull.size()-1]], debugFingerTipColor);
+            //} else {
+                //cv::line(*debugFrame, handContour[hull[j]], handContour[hull[j-1]], debugFingerTipColor);
+            //}
+        //}
 	}
 }
 
@@ -302,6 +329,121 @@ double XnVHandTracker::computeConvex(const vector<Point> &contour) {
 	return (contourArea(contourMat) / contourArea(hullContourMat));
 }
 
-//float XnVHandTracker::getPointDepth(int x, int y) {
-    //return 0;
-//}
+int XnVHandTracker::getFingerId(Blob blob, int lastId, int probableId) {
+    float angleRef;
+    float lengthRef;
+    float angleError;
+    float lengthError;
+    float bestScore(1000);
+    int id(-1);
+    //bool flags[] = {false, false, false, false, false};
+    Point pointTracked2D;
+    pointTracked2D.x = m_pointTracked.X;
+    pointTracked2D.y = m_pointTracked.Y;
+    if ( probableId > 4 )
+        probableId = 4;
+
+    std::cout << "LastId: " << lastId << " - Probable Id: " << probableId << " (" << blob.lastGap << ")\n";
+    // Here for left hand, to manage later
+    for (int i = lastId+1; i <= probableId+1; i++) {
+        switch(i) {
+            case 1:
+                angleRef = -1.43;
+                lengthRef = 137;
+                break;
+            case 2:
+                angleRef = -0.70;
+                lengthRef = 165;
+                break;
+            case 3:
+                angleRef = -0.18;
+                lengthRef = 186;
+                break;
+            case 4:
+                angleRef = 0.62;
+                lengthRef = 179;
+                break;
+            case 5:
+                angleRef = 1.6;
+                lengthRef = 145;
+                break;
+        }
+        angleError = fabs(blob.angle - angleRef);
+        lengthError = fabs(blob.length - lengthRef);
+        //float score = (angleError*20) + (lengthError/4);
+        float score = angleError;
+        if ( score < bestScore ) {
+            bestScore = score;
+            id = i;
+        }
+        //if ( angleError < 0.4 && lengthError < 20) {
+            //std::cout << i << " - Found a finger: " << angleError << "  " << lengthError << " / " << blob.angle << "  " << blob.length << std::endl;
+            //return i;
+        //} else
+            //std::cout << i << " - Nothing: " << angleError << "  " << lengthError << "  " << blob.angle << "  " << blob.length << std::endl;
+    }
+    return id;
+}
+
+int XnVHandTracker::fingerTipsIdentification(vector<Point> &fingerTips, Mat *debugFrame) {
+	const Scalar debugFingerTipColor(255,0,0);
+    Point pointTracked2D;
+    pointTracked2D.x = m_pointTracked.X;
+    pointTracked2D.y = m_pointTracked.Y;
+    //bool flags[] = {false, false, false, false, false};
+    int probableId(0);
+    int lastId(0);
+
+    Fingers.clear();
+
+    Point axeBase = m_poignet[0];
+    if ( m_poignet.size() == 0 ) {
+        std::cout << "** Cannot compute Axebase: " << m_poignet.size() << std::endl;
+        return 1;
+    }
+    else if ( m_poignet.size() > 1 ) {
+        axeBase.x = ( axeBase.x + m_poignet[1].x ) / 2;
+        axeBase.y = ( axeBase.y + m_poignet[1].y ) / 2;
+    }
+    // Replace last point, in order to order (haha) fingerTips
+    while ( fingerTips[0].x > fingerTips[fingerTips.size()-1].x ) {
+        fingerTips.push_back(fingerTips[0]);
+        fingerTips.erase(fingerTips.begin());
+    }
+
+    cv::circle(*debugFrame, axeBase, 10, debugFingerTipColor, 3);
+    cv::line(*debugFrame, axeBase, pointTracked2D, debugFingerTipColor);
+    for ( int i=0; i < fingerTips.size(); i++ ) {
+        // Calculate angle between new axe and finger
+        Point v1 = fingerTips[i] - pointTracked2D;
+        Point v2 = axeBase - pointTracked2D;
+        float angle =  asin( ( v1.x*v2.y - v1.y*v2.x ) / (norm(v1) * norm(v2)) );
+        float gap(0);
+        float length = sqrt(pow((fingerTips[i].x - axeBase.x), 2) + pow((fingerTips[i].y - axeBase.y), 2));
+        if ( i != 0 ) {
+            gap = sqrt(pow((fingerTips[i].x - fingerTips[i-1].x), 2) + pow((fingerTips[i].y - fingerTips[i-1].y), 2));
+            probableId = lastId + round(gap/50);
+        } else
+            probableId = 4;
+        std::cout << i+1 << " - angle: " << angle << ", length: " << length << ", gap: " << gap << std::endl;
+
+        // Identifying each finger
+        Blob blob;
+        blob.hand = 1;  //ie left hand
+        blob.coordinates.X = fingerTips[i].x;
+        blob.coordinates.Y = fingerTips[i].y;
+        blob.coordinates.Z = depthMat.at<float>(fingerTips[i].x, fingerTips[i].y);
+        blob.length = length;
+        blob.lastGap = gap;
+        blob.angle = angle;
+        if ( (blob.id = getFingerId(blob, lastId, probableId)) > 0 ) {
+            Fingers.push_back(blob);
+            lastId = blob.id;
+            std::ostringstream ostr;
+            ostr << blob.id;
+            putText(*debugFrame, ostr.str(), Point(blob.coordinates.X, blob.coordinates.Y), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0, 0), 2);
+            cv::circle(*debugFrame, fingerTips[i], 10, debugFingerTipColor, 3);
+            cv::line(*debugFrame, pointTracked2D, fingerTips[i], debugFingerTipColor);
+        }
+    }
+}
