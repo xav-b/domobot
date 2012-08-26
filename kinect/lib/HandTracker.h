@@ -92,7 +92,7 @@ public:
     /*
      *Process a convex algo to improve segmentation
      */
-    double computeConvex(const vector<Point> &contour);
+    double computeConvex(const vector<Point> &contour, Mat *debugFrame);
 
     /*
      *Store each finger coordinates

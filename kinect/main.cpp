@@ -167,6 +167,9 @@ int main(int argc, char ** argv)
     uint16_t maxDepth = depthMD.ZRes();
     printf("[DEBUG] Max depth: %d\n", maxDepth);  // Doesn't work !
 
+    // New !!
+    //IplImage *depthImage = cvCreateImage (cvSize( depthMD.FullXRes(), depthMD.FullYRes() ), IPL_DEPTH_16U, 1);
+
 	// Create NITE objects
 	g_pSessionManager = new XnVSessionManager;
 	rc = g_pSessionManager->Initialize(&g_Context, "Click,Wave", "RaiseHand");
@@ -224,25 +227,30 @@ int main(int argc, char ** argv)
 
 	while ( !xnOSWasKeyboardHit() )
 	{
+        // ---- Main tracking -----------------------------------------------------------------
 		g_Context.WaitOneUpdateAll(g_DepthGenerator);
 		g_pSessionManager->Update(&g_Context);
 		trackedInfos = PrintSessionState(g_SessionState);
-        // Prepare data for opencv
         g_pHand->getPosition(rh, handToTrack);
+        // ---- FingerTips detection ----------------------------------------------------------
         Mat mat(frameSize, CV_16UC1, (unsigned char *)g_DepthGenerator.GetDepthMap());
         if ( g_pHand->getContour(mat, rh, handContour, globalConf["debug"], detectConf["epsilon"], detectConf["maxHandRadius"], detectConf["tolerance"]) ) {
-            bool grasp = g_pHand->computeConvex(handContour) > detectConf["grabConvexity"];
+            bool grasp = g_pHand->computeConvex(handContour, &depthMatBgr) > detectConf["grabConvexity"];
             int thickness = grasp ? CV_FILLED : 3;
             circle(depthMatBgr, Point(rh[0], rh[1]), 10, color, thickness);
-            // Detection
             g_pHand->detectFingerTips(handContour, fingerTips, &depthMatBgr, detectConf["angleMax"], detectConf["cutoffCoeff"]);
-            g_pHand->fingerTipsIdentification(fingerTips, &depthMatBgr);
+            // ---- FingerTips recognition ----------------------------------------------------
+            if ( g_pHand->fingerTipsIdentification(fingerTips, &depthMatBgr) == 0 ) {
+                cout << "[INFO] Valid frame, updating tuio objects\n\n";
+                // ---- TUIO transaction ------------------------------------------------------
+                network.tuioBlobUpdate(rh);
+                network.tuioBlobUpdate(g_pHand);
+                network.tuioCommit();
+                // ----------------------------------------------------------------------------
+            }
+            else
+                cout << "[INFO] ** trash frame !\n\n";
 
-            // ---- TUIO transaction ---------------------------------------------------------
-            network.tuioBlobUpdate(rh);
-            network.tuioBlobUpdate(g_pHand);
-            network.tuioCommit();
-            // -------------------------------------------------------------------------------
         }
         //putText(depthMatBgr, trackedInfos, Point(rh[0]-50,rh[1]-50), FONT_HERSHEY_TRIPLEX, 1, Scalar(0, 0, 0, 0), 2);
         if ( globalConf["graphic"] )
@@ -252,10 +260,6 @@ int main(int argc, char ** argv)
 	g_pSessionManager->EndSession();
 	CleanupExit();
     cvDestroyAllWindows();
-
-    //typedef boost::chrono::milliseconds ms;
-    //ms d = boost::chrono::thread_clock::now() - start;
-    //std::cout << ms.count() << "ms\n";
 }
 
 
@@ -263,7 +267,3 @@ int main(int argc, char ** argv)
 //TODO Le filtrage de l'image pour éliminer le bruit
 //TODO Un buffer de "souvenir" pour éliminer les erreurs d'une frame
 //TODO Le multithreading (openmp, pthread), voir gpu (cuda, opencl)
-//TODO Une classe TuioServer avec notamment:
-//          - TuioInit(string configFile)
-//          - TuioUpdate(Finger blob[i])
-//          - TuioCommit()

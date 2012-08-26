@@ -4,7 +4,7 @@
     {
         "debug": false,
         "graphic": true,
-        "localClient": false
+        "localClient": true
     },
     "detect":
     {
@@ -15,12 +15,12 @@
         "tolerance": 100,
         "angleMax": 1,
         "cutoffCoeff": 0.1,
-        "cycle": 20,
+        "cycle": 40,
         "fingerDistinct": 0.5
     },
     "client":
     {
-        "ip": "192.168.0.13",
+        "ip": "127.0.0.1",
         "port": 3333
     }
 }

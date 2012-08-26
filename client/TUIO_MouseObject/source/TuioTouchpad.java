@@ -27,11 +27,11 @@ public class TuioTouchpad implements TuioListener {
 			if (robot!=null) robot.mouseMove(xpos,ypos);
 		}
 		else {
-			if (tobjId == 2) {
+			if (tobjId == 5) {
                 System.out.println("Releasing left button");
 				if (robot!=null) robot.mouseRelease(InputEvent.BUTTON1_MASK);
 			}
-			else if (tobjId == 3) {
+			else if (tobjId == 4) {
                 System.out.println("Releasing right button");
 				if (robot!=null) robot.mouseRelease(InputEvent.BUTTON3_MASK);
 			}
@@ -62,24 +62,27 @@ public class TuioTouchpad implements TuioListener {
 		long tobjId = tobj.getSymbolID();
 		if (tobjId == mouse) {
 			mouse = -1;
+            System.out.println("Removing mouse control");
 		} 
-		else if (tobjId == 2) {
+		else if (tobjId == 5) {
                 System.out.println("Left click !");
 			if (robot!=null) robot.mousePress(InputEvent.BUTTON1_MASK);
 		}
-		else if (tobjId == 3) {
+		else if (tobjId == 4) {
                 System.out.println("Right click !");
 			if (robot!=null) robot.mousePress(InputEvent.BUTTON3_MASK);
 		}
+        else
+            System.out.println("Removing Symbol " + tobjId);
 		
 	}
 	
 	public TuioTouchpad() {
-		//try { robot = new Robot(); }
-		//catch (Exception e) {
-			//System.out.println("failed to initialize mouse robot");
-			//System.exit(0);
-		//}
+        //try { robot = new Robot(); }
+        //catch (Exception e) {
+            //System.out.println("failed to initialize mouse robot");
+            //System.exit(0);
+        //}
 		
 		width  = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth();
 		height = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight();
