@@ -1,16 +1,30 @@
-/*******************************************************************************
-*                                                                              *
-*   PrimeSense NITE 1.3 - Point Viewer Sample                                  *
-*   Copyright (C) 2010 PrimeSense Ltd.                                         *
-*                                                                              *
-*******************************************************************************/
-
 #include "HandTracker.h"
 #include "XnVDepthMessage.h"
 #include <XnVHandPointContext.h>
 #include <sstream>
+#include <fstream>
 
 #define MAX_DEPTH 10000
+
+int XnVHandTracker::writeSVMFormat(Mat* debugFrame) {
+    std::ofstream SVMFlux("./pySVM/SVMTest.txt");
+    // Saving data
+    for (int j = 0; j < Fingers.size(); j++) {
+        SVMFlux << j+1 << " 1:" << Fingers[j].angle << " 2:" << Fingers[j].length << std::endl;
+    }
+    // Computing prediction
+    int rc = system("python ./pySVM/fingerSVC.py");
+    // Computing id assigment
+    std::ifstream SVMResult("./pySVM/predict.data");
+    for ( int i=0; i < Fingers.size(); i++ ) {
+        string id;
+        getline(SVMResult, id);
+        Fingers[i].id = atof(id.c_str());
+        putText(*debugFrame, id, Point(Fingers[i].coordinates.X, Fingers[i].coordinates.Y), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0, 0), 2);
+        cv::circle(*debugFrame, Point(Fingers[i].coordinates.X, Fingers[i].coordinates.Y), 10, Scalar(0,0,255), 3);
+    }
+    return 0;
+}
 
 // Colors for the points
 XnFloat Colors[][3] =
@@ -207,19 +221,6 @@ bool XnVHandTracker::getContour(const Mat mat, const float *v, vector<Point> &ha
 		//handContour = contours[maxI];
 	}
 
-    //Moments moments(&handContour);
-    //CvHuMoments *HuMoments;
-    //cvMoments(&mask, moments, 1);
-    //cvMoments(&handContour, moments);
-    //cvGetHuMoments(moments, HuMoments);
-    //printf("Hu Moment hu1: %.12f", HuMoments->hu1);
-    //printf("Hu Moment hu2: %.12f", HuMoments->hu2);
-    //printf("Hu Moment hu3: %.12f", HuMoments->hu3);
-    //printf("Hu Moment hu4: %.12f", HuMoments->hu4);
-    //printf("Hu Moment hu5: %.12f", HuMoments->hu5);
-    //printf("Hu Moment hu6: %.12f", HuMoments->hu6);
-    //printf("Hu Moment hu7: %.12f", HuMoments->hu7);
-
     //DEBUG draw hand contour
     if ( debug ) {
         mask.setTo(0);	
@@ -285,21 +286,21 @@ void XnVHandTracker::detectFingerTips(const vector<Point> &handContour, vector<P
     if ( firstIdx >= 0 && m_poignet.size() != 0) 
         cv::line(*debugFrame, Point(handContour[firstIdx].x, handContour[firstIdx].y), Point(handContour[firstIdx+1].x, handContour[firstIdx+1].y), debugFingerTipColor);
 
-	//if (debugFrame) {
+    if (debugFrame) {
     bool debug = false;
-    if (debug) {
+    //if (debug) {
 		// draw cutoff threshold
         cv::line(*debugFrame, Point(0, cutoff), Point(640, cutoff), debugFingerTipColor);
 
 		// draw approxCurve
-        for (int j=0; j<handContour.size(); j++) {
-            cv::circle(*debugFrame, handContour[j], 10, debugFingerTipColor);
-            if (j != 0) {
-                cv::line(*debugFrame, handContour[j], handContour[j-1], debugFingerTipColor);
-            } else {
-                cv::line(*debugFrame, handContour[0], handContour[handContour.size()-1], debugFingerTipColor);
-            }
-        }
+        //for (int j=0; j<handContour.size(); j++) {
+            //cv::circle(*debugFrame, handContour[j], 10, debugFingerTipColor);
+            //if (j != 0) {
+                //cv::line(*debugFrame, handContour[j], handContour[j-1], debugFingerTipColor);
+            //} else {
+                //cv::line(*debugFrame, handContour[0], handContour[handContour.size()-1], debugFingerTipColor);
+            //}
+        //}
 
 		// draw approxCurve hull
         for (int j=0; j<hull.size(); j++) {
@@ -379,14 +380,12 @@ int XnVHandTracker::getFingerId(Blob blob, int lastId, int probableId) {
 
 int XnVHandTracker::fingerTipsIdentification(vector<Point> &fingerTips, Mat *debugFrame) {
 	const Scalar debugFingerTipColor(255,0,0);
-    //bool flags[] = {false, false, false, false, false};
     int probableId(0);
     int lastId(0);
 
     Fingers.clear();
 
     int size = m_poignet.size();
-    //Point axeBase = m_poignet[0];
     std::cout << "[INFO] Poignet size: " << m_poignet.size() << std::endl;
     std::cout << "[INFO] Number of fingers: " << fingerTips.size() << std::endl;
     if ( m_poignet.size() != 2 ) 
@@ -428,15 +427,15 @@ int XnVHandTracker::fingerTipsIdentification(vector<Point> &fingerTips, Mat *deb
         blob.length = length;
         blob.lastGap = gap;
         blob.angle = angle;
-        if ( (blob.id = getFingerId(blob, lastId, probableId)) > 0 ) {
-            Fingers.push_back(blob);
-            lastId = blob.id;
-            std::ostringstream ostr;
-            ostr << blob.id;
-            putText(*debugFrame, ostr.str(), Point(blob.coordinates.X, blob.coordinates.Y), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0, 0), 2);
-            cv::circle(*debugFrame, fingerTips[i], 10, debugFingerTipColor, 3);
-            cv::line(*debugFrame, m_poignet[0], fingerTips[i], debugFingerTipColor);
-        }
+
+        // Writting training data for SVM classification
+        //if ( fingerTips.size() == (i+1))
+            //writeSVMFormat(i+1, blob.angle, blob.length);
+        //if ( (blob.id = getFingerId(blob, lastId, probableId)) > 0 ) {
+        Fingers.push_back(blob);
+            //lastId = blob.id;
     }
+    writeSVMFormat(debugFrame); 
+
     return 0;
 }

@@ -109,6 +109,8 @@ public:
      */
     int getFingerId(Blob blob, int lastId, int probableId);
 
+    int writeSVMFormat(Mat *debugFrame);
+
 protected:
 	XnBool IsTouching(XnUInt32 nID) const;
 	std::list<XnUInt32> m_TouchingFOVEdge;

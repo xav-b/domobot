@@ -13,8 +13,10 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 // OpenCV headers
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+//#include <cv.h>
+//#include <highgui.h>
 // local headers
 #include "lib/HandTracker.cpp"
 #include "lib/XnCommunication.cpp"
@@ -239,18 +241,29 @@ int main(int argc, char ** argv)
             int thickness = grasp ? CV_FILLED : 3;
             circle(depthMatBgr, Point(rh[0], rh[1]), 10, color, thickness);
             g_pHand->detectFingerTips(handContour, fingerTips, &depthMatBgr, detectConf["angleMax"], detectConf["cutoffCoeff"]);
+
+            //Moments mu = moments(handContour, false);
+            //printf("Moments %f %f %f %f %f %f %f %f\n",mu.m00,mu.m01,mu.m20,mu.m11,mu.m02,mu.m30,mu.m21,mu.m03);
+            //printf("Moments %f %f %f %f %f\n",mu.mu20,mu.mu11,mu.mu02,mu.nu20,mu.nu21);
+            //double h[7];
+            //HuMoments(mu,h);
+            //printf("HuMoments %f %f %f %f %f %f %f\n\n",h[0],h[1],h[2],h[3],h[4],h[5],h[6]);
+            //Point2f mc = Point2f( mu.m10/mu.m00 , mu.m01/mu.m00  );
+            //circle( depthMatBgr, mc, 4, Scalar(255,0,0), -1, 8, 0  );
+            //printf(" * Contour - Area (M_00) = %.2f - Area OpenCV: %.2f - Length: %.2f \n", mu.m00, contourArea(handContour), arcLength( handContour, true  ) );
+
             // ---- FingerTips recognition ----------------------------------------------------
             if ( g_pHand->fingerTipsIdentification(fingerTips, &depthMatBgr) == 0 ) {
                 cout << "[INFO] Valid frame, updating tuio objects\n\n";
                 // ---- TUIO transaction ------------------------------------------------------
-                network.tuioBlobUpdate(rh);
+            /*    network.tuioBlobUpdate(rh);
                 network.tuioBlobUpdate(g_pHand);
                 network.tuioCommit();
+            */
                 // ----------------------------------------------------------------------------
             }
             else
                 cout << "[INFO] ** trash frame !\n\n";
-
         }
         //putText(depthMatBgr, trackedInfos, Point(rh[0]-50,rh[1]-50), FONT_HERSHEY_TRIPLEX, 1, Scalar(0, 0, 0, 0), 2);
         if ( globalConf["graphic"] )
