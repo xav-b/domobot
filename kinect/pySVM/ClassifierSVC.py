@@ -17,6 +17,7 @@ import numpy as np
 import pylab as pl
 from sklearn import svm, datasets, metrics, cross_validation
 from sklearn.grid_search import GridSearchCV
+from sklearn.externals import joblib
 
 def plotLinearKernels(X, Y, clf):
     h = .02
@@ -86,13 +87,15 @@ def main():
     plotLinearKernels(X, Y, clf)
 
     ''' Saving model '''
-    try:
-        import cPickle as pickle
-    except:
-        import pickle
-    fd = open('SVCmodel.data', 'wb')
-    pickle.dump(clf, fd)
-    fd.close()
+    #try:
+        #import cPickle as pickle
+    #except:
+        #import pickle
+    #fd = open('SVCmodel.data', 'wb')
+    #pickle.dump(clf, fd)
+    #fd.close()
+    ''' joblib trye '''
+    joblib.dump(clf, 'SVCmodel.data')
 
 
 if __name__ == '__main__':

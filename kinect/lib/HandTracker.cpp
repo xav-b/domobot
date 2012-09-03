@@ -3,6 +3,9 @@
 #include <XnVHandPointContext.h>
 #include <sstream>
 #include <fstream>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
 
 #define MAX_DEPTH 10000
 
@@ -13,16 +16,33 @@ int XnVHandTracker::writeSVMFormat(Mat* debugFrame) {
         SVMFlux << j+1 << " 1:" << Fingers[j].angle << " 2:" << Fingers[j].length << std::endl;
     }
     // Computing prediction
-    int rc = system("python ./pySVM/fingerSVC.py");
-    // Computing id assigment
-    std::ifstream SVMResult("./pySVM/predict.data");
+    const char* const socket_name = "/tmp/socket";
+    const char* const message = "do";
+    int socket_fd;
+    struct sockaddr_un name;
+
+    socket_fd = socket (PF_LOCAL, SOCK_STREAM, 0);
+    name.sun_family = AF_UNIX;
+    strcpy (name.sun_path, socket_name);
+
+    connect (socket_fd, (struct sockaddr*) &name, SUN_LEN (&name));
+    int length = strlen (message) + 1;
+    write (socket_fd, message, length);
     for ( int i=0; i < Fingers.size(); i++ ) {
-        string id;
-        getline(SVMResult, id);
-        Fingers[i].id = atof(id.c_str());
-        putText(*debugFrame, id, Point(Fingers[i].coordinates.X, Fingers[i].coordinates.Y), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0, 0), 2);
+        char buf[3];
+        int recv = 0;
+        recv = read(socket_fd, buf, sizeof(buf));
+        if ( recv <= 1 ) {
+            std::cout << "** Error reading socket\n";
+            break;
+        }
+        buf[recv] = '\0';
+        std::cout << "Recieved " << buf << " (" << recv << ")\n";
+        Fingers[i].id = atof(buf);
+        putText(*debugFrame, buf, Point(Fingers[i].coordinates.X, Fingers[i].coordinates.Y), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0, 0), 2);
         cv::circle(*debugFrame, Point(Fingers[i].coordinates.X, Fingers[i].coordinates.Y), 10, Scalar(0,0,255), 3);
     }
+    close (socket_fd);
     return 0;
 }
 
