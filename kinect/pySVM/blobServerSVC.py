@@ -2,7 +2,6 @@
 
 import socket
 import os, os.path
-import time
 from sklearn.externals import joblib
 from sklearn import datasets
 import cPickle as pickle
@@ -10,8 +9,6 @@ import cPickle as pickle
 import time
 
 ########## Prepare SVC computation #########################################################
-print '[CHRONO] Beginning'
-t1 = time.time()
 
 ''' Loading model '''
 ''' Pickle try '''
@@ -21,8 +18,6 @@ t1 = time.time()
 #fd.close()
 ''' Joblist try '''
 clf = joblib.load('./pySVM/SVCmodel.data')
-print '[CHRONO] Classifier loaded:', time.time() - t1
-t = time.time()
 
 ########## ####################### #########################################################
 
@@ -48,19 +43,12 @@ while True:
             print 'done sent'
             break
         else:
-            print '[CHRONO] Loading new values'
-            t = time.time()
             XTestTmp, YTest = datasets.load_svmlight_file("./pySVM/SVMTest.txt")
             XTest = XTestTmp.toarray()
-            print '[CHRONO] Done:', time.time() - t
-            t = time.time()
             ''' Testing now new data '''
             for prediction in clf.predict(XTest):
                 client.send(str(prediction))
-                print '[CHRONO] Each prediction:', time.time() - t
-                t = time.time()
             client.send(" ")
-            print '[CHRONO] End:', time.time() - t1
 print "-" * 20
 print "Shutting down..."
 server.close()

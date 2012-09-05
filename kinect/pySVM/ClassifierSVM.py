@@ -45,10 +45,7 @@ def plotLinearKernels(X, Y, clf):
 
 def main():
     # import some data to play with
-    #iris = datasets.load_iris()
-    #X = iris.data[:, :2]  # we only take the first two features.
-    #Y = iris.target
-    XTmp, Y = datasets.load_svmlight_file("./SVMData.txt")
+    XTmp, Y = datasets.load_svmlight_file("./SVMTrain.txt")
     X = XTmp.toarray()
     XTestTmp, YTest = datasets.load_svmlight_file("./SVMTest.txt")
     XTest = XTestTmp.toarray()

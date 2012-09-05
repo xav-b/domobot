@@ -10,12 +10,14 @@
 #define MAX_DEPTH 10000
 
 int XnVHandTracker::writeSVMFormat(Mat* debugFrame) {
+    int probableId(0);
     std::ofstream SVMFlux("./pySVM/SVMTest.txt");
+    //std::ofstream SVMFlux("./pySVM/SVMTrain.txt", std::ios::app);
     // Saving data
-    for (int j = 0; j < Fingers.size(); j++) {
+    for (int j = 0; j < Fingers.size(); j++) 
         SVMFlux << j+1 << " 1:" << Fingers[j].angle << " 2:" << Fingers[j].length << std::endl;
-    }
-    // Computing prediction
+
+    //* Computing prediction
     const char* const socket_name = "/tmp/socket";
     const char* const message = "do";
     int socket_fd;
@@ -34,15 +36,21 @@ int XnVHandTracker::writeSVMFormat(Mat* debugFrame) {
         recv = read(socket_fd, buf, sizeof(buf));
         if ( recv <= 1 ) {
             std::cout << "** Error reading socket\n";
-            break;
+            return -1;
         }
         buf[recv] = '\0';
-        std::cout << "Recieved " << buf << " (" << recv << ")\n";
+        //std::cout << "Recieved " << buf << " (" << recv << ")\n";
+        if ( i > 0 ) {
+            probableId = Fingers[i-1].id + round(Fingers[i].lastGap/50);
+            if ( atof(buf) != probableId )
+                return -2;
+        }
         Fingers[i].id = atof(buf);
         putText(*debugFrame, buf, Point(Fingers[i].coordinates.X, Fingers[i].coordinates.Y), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0, 0), 2);
         cv::circle(*debugFrame, Point(Fingers[i].coordinates.X, Fingers[i].coordinates.Y), 10, Scalar(0,0,255), 3);
     }
     close (socket_fd);
+    //*/
     return 0;
 }
 
@@ -398,44 +406,35 @@ int XnVHandTracker::getFingerId(Blob blob, int lastId, int probableId) {
     return id;
 }
 
-int XnVHandTracker::fingerTipsIdentification(vector<Point> &fingerTips, Mat *debugFrame) {
+int XnVHandTracker::fingerTipsIdentification(vector<Point> &fingerTips, Point centroid, Mat *debugFrame) {
 	const Scalar debugFingerTipColor(255,0,0);
-    int probableId(0);
-    int lastId(0);
 
     Fingers.clear();
 
-    int size = m_poignet.size();
-    std::cout << "[INFO] Poignet size: " << m_poignet.size() << std::endl;
     std::cout << "[INFO] Number of fingers: " << fingerTips.size() << std::endl;
-    if ( m_poignet.size() != 2 ) 
-        return 1;
     if ( fingerTips.size() < 1 || fingerTips.size() > 5) 
         return 2;
     
     Point stableRef;
-    stableRef.x = m_poignet[0].x + 100;
-    stableRef.y = m_poignet[0].y;
+    stableRef.x = m_pointTracked.X;
+    stableRef.y = m_pointTracked.Y;
     // Replace last point, in order to order (haha) fingerTips
     while ( fingerTips[0].x > fingerTips[fingerTips.size()-1].x ) {
         fingerTips.push_back(fingerTips[0]);
         fingerTips.erase(fingerTips.begin());
     }
 
-    cv::circle(*debugFrame, m_poignet[0], 10, debugFingerTipColor, 3);
-    cv::line(*debugFrame, m_poignet[0], stableRef, debugFingerTipColor);
+    cv::circle(*debugFrame, centroid, 10, debugFingerTipColor, 3);
+    cv::line(*debugFrame, centroid, stableRef, debugFingerTipColor);
     for ( int i=0; i < fingerTips.size(); i++ ) {
         // Calculate angle between new axe and finger
-        Point v1 = fingerTips[i] - m_poignet[0];
-        Point v2 = stableRef - m_poignet[0];
-        float angle =  acos( ( v1.x*v2.x + v1.y*v2.y ) / (norm(v1) * norm(v2)) );
+        Point v1 = fingerTips[i] - stableRef;
+        Point v2 = centroid - stableRef;
+        float angle =  asin( ( v1.x*v2.y - v1.y*v2.x ) / (norm(v1) * norm(v2)) );
         float gap(0);
-        float length = sqrt(pow((fingerTips[i].x - m_poignet[0].x), 2) + pow((fingerTips[i].y - m_poignet[0].y), 2));
-        if ( i != 0 ) {
+        float length = sqrt(pow((fingerTips[i].x - centroid.x), 2) + pow((fingerTips[i].y - centroid.y), 2));
+        if ( i != 0 ) 
             gap = sqrt(pow((fingerTips[i].x - fingerTips[i-1].x), 2) + pow((fingerTips[i].y - fingerTips[i-1].y), 2));
-            probableId = lastId + round(gap/50);
-        } else
-            probableId = 5;
         std::cout << i+1 << " - angle: " << angle << ", length: " << length << ", gap: " << gap << std::endl;
 
         // Identifying each finger
@@ -448,14 +447,10 @@ int XnVHandTracker::fingerTipsIdentification(vector<Point> &fingerTips, Mat *deb
         blob.lastGap = gap;
         blob.angle = angle;
 
-        // Writting training data for SVM classification
-        //if ( fingerTips.size() == (i+1))
-            //writeSVMFormat(i+1, blob.angle, blob.length);
         //if ( (blob.id = getFingerId(blob, lastId, probableId)) > 0 ) {
         Fingers.push_back(blob);
-            //lastId = blob.id;
     }
-    writeSVMFormat(debugFrame); 
-
+    if ( writeSVMFormat(debugFrame) < 0 )
+        return -1;
     return 0;
 }

@@ -4,7 +4,7 @@
     {
         "debug": false,
         "graphic": true,
-        "localClient": true
+        "localClient": false
     },
     "detect":
     {

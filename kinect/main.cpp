@@ -242,24 +242,22 @@ int main(int argc, char ** argv)
             circle(depthMatBgr, Point(rh[0], rh[1]), 10, color, thickness);
             g_pHand->detectFingerTips(handContour, fingerTips, &depthMatBgr, detectConf["angleMax"], detectConf["cutoffCoeff"]);
 
-            //Moments mu = moments(handContour, false);
-            //printf("Moments %f %f %f %f %f %f %f %f\n",mu.m00,mu.m01,mu.m20,mu.m11,mu.m02,mu.m30,mu.m21,mu.m03);
-            //printf("Moments %f %f %f %f %f\n",mu.mu20,mu.mu11,mu.mu02,mu.nu20,mu.nu21);
-            //double h[7];
-            //HuMoments(mu,h);
-            //printf("HuMoments %f %f %f %f %f %f %f\n\n",h[0],h[1],h[2],h[3],h[4],h[5],h[6]);
-            //Point2f mc = Point2f( mu.m10/mu.m00 , mu.m01/mu.m00  );
-            //circle( depthMatBgr, mc, 4, Scalar(255,0,0), -1, 8, 0  );
-            //printf(" * Contour - Area (M_00) = %.2f - Area OpenCV: %.2f - Length: %.2f \n", mu.m00, contourArea(handContour), arcLength( handContour, true  ) );
+            // Bounding rect for hand orinetation
+            RotatedRect ellipse = fitEllipse(handContour);
+            Point2f ellipse_points[4]; ellipse.points( ellipse_points );
+            for( int j = 0; j < 4; j++  ) 
+                line( depthMatBgr, ellipse_points[j], ellipse_points[(j+1)%4], Scalar(0,255,0), 1, 8  );
+            Moments mu = moments(handContour, false);
+            Point centroid = Point( mu.m10/mu.m00 , mu.m01/mu.m00 );
+            circle( depthMatBgr, centroid, 8, Scalar(255,0,0), -1, 8, 0  );
 
             // ---- FingerTips recognition ----------------------------------------------------
-            if ( g_pHand->fingerTipsIdentification(fingerTips, &depthMatBgr) == 0 ) {
+            if ( g_pHand->fingerTipsIdentification(fingerTips, centroid, &depthMatBgr) == 0 ) {
                 cout << "[INFO] Valid frame, updating tuio objects\n\n";
                 // ---- TUIO transaction ------------------------------------------------------
-            /*    network.tuioBlobUpdate(rh);
+                network.tuioBlobUpdate(rh);
                 network.tuioBlobUpdate(g_pHand);
                 network.tuioCommit();
-            */
                 // ----------------------------------------------------------------------------
             }
             else

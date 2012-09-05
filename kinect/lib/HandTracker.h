@@ -15,8 +15,10 @@
 #include <XnCppWrapper.h>
 #include <XnVPointControl.h>
 
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+//#include <opencv/cv.h>
+//#include <opencv/highgui.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 using namespace cv;
 using namespace xn;
 
@@ -102,7 +104,7 @@ public:
     /*
      * Classification des doigts détectés
      */
-    int fingerTipsIdentification(vector<Point> &fingerTips, Mat *debugFrame);
+    int fingerTipsIdentification(vector<Point> &fingerTips, cv::Point centroid, Mat *debugFrame);
 
     /*
      * Estimation de l'identité du doigt à partir de la structure remplie
