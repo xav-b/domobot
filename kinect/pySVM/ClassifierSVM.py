@@ -81,7 +81,7 @@ def main():
     print 'Raw test: ', clf.score(X, Y)
 
     ''' Visulazing model '''
-    plotLinearKernels(X, Y, clf)
+    #plotLinearKernels(X, Y, clf)
 
     ''' Saving model '''
     #try:

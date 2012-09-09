@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <list>
+#include <cmath>
 // Headers for OpenNI
 #include <XnOpenNI.h>
 #include <XnCppWrapper.h>
@@ -13,10 +14,9 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 // OpenCV headers
+#include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-//#include <cv.h>
-//#include <highgui.h>
 // local headers
 #include "lib/HandTracker.cpp"
 #include "lib/XnCommunication.cpp"
@@ -219,7 +219,7 @@ int main(int argc, char ** argv)
 
     // **** TUIO Init
     XnCommunication network(pt.get("client.ip", "127.0.0.1"), pt.get("client.port", 3333));
-    network.tuioInit(globalConf["debug"]);
+    //network.tuioInit(globalConf["debug"]);
     //----------------------------------------------------------------------------------------
     float rh[3];
     vector<Point> handContour, fingerTips;
@@ -242,11 +242,6 @@ int main(int argc, char ** argv)
             circle(depthMatBgr, Point(rh[0], rh[1]), 10, color, thickness);
             g_pHand->detectFingerTips(handContour, fingerTips, &depthMatBgr, detectConf["angleMax"], detectConf["cutoffCoeff"]);
 
-            // Bounding rect for hand orinetation
-            RotatedRect ellipse = fitEllipse(handContour);
-            Point2f ellipse_points[4]; ellipse.points( ellipse_points );
-            for( int j = 0; j < 4; j++  ) 
-                line( depthMatBgr, ellipse_points[j], ellipse_points[(j+1)%4], Scalar(0,255,0), 1, 8  );
             Moments mu = moments(handContour, false);
             Point centroid = Point( mu.m10/mu.m00 , mu.m01/mu.m00 );
             circle( depthMatBgr, centroid, 8, Scalar(255,0,0), -1, 8, 0  );
@@ -255,11 +250,12 @@ int main(int argc, char ** argv)
             if ( g_pHand->fingerTipsIdentification(fingerTips, centroid, &depthMatBgr) == 0 ) {
                 cout << "[INFO] Valid frame, updating tuio objects\n\n";
                 // ---- TUIO transaction ------------------------------------------------------
-                network.tuioBlobUpdate(rh);
-                network.tuioBlobUpdate(g_pHand);
-                network.tuioCommit();
+                //network.tuioBlobUpdate(rh);
+                //network.tuioBlobUpdate(g_pHand);
+                //network.tuioCommit();
+                network.composeJsonMsg(g_pHand);
                 // ----------------------------------------------------------------------------
-            }
+            } 
             else
                 cout << "[INFO] ** trash frame !\n\n";
         }
@@ -274,7 +270,6 @@ int main(int argc, char ** argv)
 }
 
 
-//TODO Un réseau de neuronne pour la reconnaissance de doigt
 //TODO Le filtrage de l'image pour éliminer le bruit
 //TODO Un buffer de "souvenir" pour éliminer les erreurs d'une frame
 //TODO Le multithreading (openmp, pthread), voir gpu (cuda, opencl)

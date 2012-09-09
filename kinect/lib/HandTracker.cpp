@@ -9,14 +9,27 @@
 
 #define MAX_DEPTH 10000
 
-int XnVHandTracker::writeSVMFormat(Mat* debugFrame) {
+int XnVHandTracker::writeSVMFormat(Mat* debugFrame, float diSymetrie) {
     int probableId(0);
+    //const int lengthNominal = 120;
+    //const float angleNominal = 1.7;
+    //const int lengthMire1Nominal = 120;
+    //const float angleMire1Nominal = 2;
+    //const int lengthMire2Nominal = 150;
+    //const float angleMire2Nominal = 0.5;
+    const int lengthNominal = 1;
+    const float angleNominal = 1;
+    const int lengthMire1Nominal = 1;
+    const float angleMire1Nominal = 1;
+    const int lengthMire2Nominal = 1;
+    const float angleMire2Nominal = 1;
     std::ofstream SVMFlux("./pySVM/SVMTest.txt");
+    diSymetrie = 0;
     //std::ofstream SVMFlux("./pySVM/SVMTrain.txt", std::ios::app);
     // Saving data
     for (int j = 0; j < Fingers.size(); j++) 
-        SVMFlux << j+1 << " 1:" << Fingers[j].angle << " 2:" << Fingers[j].length << std::endl;
-
+        SVMFlux << j+1 << " 1:" << (Fingers[j].angle+(diSymetrie/2))/angleNominal << " 2:" << (Fingers[j].lengthMire1)/lengthMire1Nominal << " 3:" << (Fingers[j].lengthMire2)/lengthMire2Nominal << " 4:" << (Fingers[j].angleMire1)/angleMire1Nominal << " 5:" << (Fingers[j].angleMire2)/angleMire2Nominal << std::endl;
+    //return 0;
     //* Computing prediction
     const char* const socket_name = "/tmp/socket";
     const char* const message = "do";
@@ -41,9 +54,11 @@ int XnVHandTracker::writeSVMFormat(Mat* debugFrame) {
         buf[recv] = '\0';
         //std::cout << "Recieved " << buf << " (" << recv << ")\n";
         if ( i > 0 ) {
-            probableId = Fingers[i-1].id + round(Fingers[i].lastGap/50);
-            if ( atof(buf) != probableId )
+            probableId = Fingers[i-1].id + round(Fingers[i].lastGap/48);
+            if ( atof(buf) != probableId ) {
+                //std::cout << "** Not the probable Id\n";
                 return -2;
+            }
         }
         Fingers[i].id = atof(buf);
         putText(*debugFrame, buf, Point(Fingers[i].coordinates.X, Fingers[i].coordinates.Y), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 0, 0), 2);
@@ -264,7 +279,7 @@ bool XnVHandTracker::getContour(const Mat mat, const float *v, vector<Point> &ha
 
 void XnVHandTracker::detectFingerTips(const vector<Point> &handContour, vector<Point> &fingerTips, Mat *debugFrame = NULL, float angleMax = 1, float cutoffCoeff = 0.1f) {
     fingerTips.clear();
-    m_poignet.clear();
+    //m_poignet.clear();
 	Mat handContourMat(handContour);
 	double area = cv::contourArea(handContourMat);
 
@@ -299,20 +314,19 @@ void XnVHandTracker::detectFingerTips(const vector<Point> &handContour, vector<P
 			int v = handContour[idx].y;
 			fingerTips.push_back(Point2i(u,v));
 		}
-        else {
-            if ( handContour[idx].y > m_pointTracked.Y+100 ) {
-                if ( m_poignet.empty() )
-                    firstIdx = idx-1;
-                int u = handContour[idx].x;
-                int v = handContour[idx].y;
-                m_poignet.push_back(Point2i(u,v));
-            }
-        }
-	}
-    //cv::line(*debugFrame, Point(0, m_pointTracked.Y+100), Point(640, m_pointTracked.Y+100), debugFingerTipColor);
-    int size(0);
-    if ( firstIdx >= 0 && m_poignet.size() != 0) 
-        cv::line(*debugFrame, Point(handContour[firstIdx].x, handContour[firstIdx].y), Point(handContour[firstIdx+1].x, handContour[firstIdx+1].y), debugFingerTipColor);
+        //else {
+            //if ( handContour[idx].y > m_pointTracked.Y+100 ) {
+                //if ( m_poignet.empty() )
+                    //firstIdx = idx-1;
+                //int u = handContour[idx].x;
+                //int v = handContour[idx].y;
+                //m_poignet.push_back(Point2i(u,v));
+            //}
+        //}
+    }
+    //int size(0);
+    //if ( firstIdx >= 0 && m_poignet.size() != 0) 
+        //cv::line(*debugFrame, Point(handContour[firstIdx].x, handContour[firstIdx].y), Point(handContour[firstIdx+1].x, handContour[firstIdx+1].y), debugFingerTipColor);
 
     if (debugFrame) {
     bool debug = false;
@@ -360,64 +374,42 @@ double XnVHandTracker::computeConvex(const vector<Point> &contour, Mat *debugFra
 	return (contourArea(contourMat) / contourArea(hullContourMat));
 }
 
-int XnVHandTracker::getFingerId(Blob blob, int lastId, int probableId) {
-    float angleRef;
-    float lengthRef;
-    float angleError;
-    float lengthError;
-    float minAngleError(1000);
-    float minLengthError(1000);
-    int id(-1);
-    if ( probableId > 5 )
-        probableId = 5;
-
-    // Here for left hand, to manage later
-    for (int i = lastId+1; i < probableId+1; i++) {
-        switch(i) {
-            case 1:
-                angleRef = 2;
-                lengthRef = 160;
-                break;
-            case 2:
-                angleRef = 1.75;
-                lengthRef = 181;
-                break;
-            case 3:
-                angleRef = 1.55;
-                lengthRef = 195;
-                break;
-            case 4:
-                angleRef = 1.29;
-                lengthRef = 185;
-                break;
-            case 5:
-                angleRef = 0.95;
-                lengthRef = 140;
-                break;
-        }
-        angleError = fabs(blob.angle - angleRef);
-        lengthError = fabs(blob.length - lengthRef);
-        if ( angleError < minAngleError  && lengthError < minLengthError) {
-            minAngleError = angleError; minLengthError = lengthError;
-            id = i;
-        }
-    }
-    std::cout << "LastId: " << lastId << " - Probable Id: " << probableId << " (" << blob.lastGap << ")  Returning id: " << id << "( Angle: " << minAngleError << " - Length: " << minLengthError << ")\n";
-    return id;
-}
-
 int XnVHandTracker::fingerTipsIdentification(vector<Point> &fingerTips, Point centroid, Mat *debugFrame) {
 	const Scalar debugFingerTipColor(255,0,0);
-
+    float diSymetrie= 0;
     Fingers.clear();
 
-    std::cout << "[INFO] Number of fingers: " << fingerTips.size() << std::endl;
     if ( fingerTips.size() < 1 || fingerTips.size() > 5) 
         return 2;
     
     Point stableRef;
     stableRef.x = m_pointTracked.X;
     stableRef.y = m_pointTracked.Y;
+
+    Point axeX;
+    Point firstMire;
+    Point secondMire;
+    axeX.x = m_pointTracked.X + 60;
+    axeX.y = m_pointTracked.Y;
+    Point w2 = axeX - stableRef;
+    Point w1 = centroid - stableRef;
+    float angleRepere = acos( ( w1.x*w2.x + w1.y*w2.y ) / (norm(w1) * norm(w2)) );
+    float secondAngle = angleRepere + (3.14/2);
+    float firstAngle = angleRepere - (3.14/2);
+    secondMire.x = (axeX.x - stableRef.x)*cos(secondAngle) - (axeX.y - stableRef.y)*sin(secondAngle) + stableRef.x;
+    secondMire.y = (axeX.x - stableRef.x)*sin(secondAngle) + (axeX.y - stableRef.y)*cos(secondAngle) + stableRef.y;
+    firstMire.x = (axeX.x - stableRef.x)*cos(firstAngle) - (axeX.y - stableRef.y)*sin(firstAngle) + stableRef.x;
+    firstMire.y = (axeX.x - stableRef.x)*sin(firstAngle) + (axeX.y - stableRef.y)*cos(firstAngle) + stableRef.y;
+    //float coeffDir = (float)(float((centroid.x - stableRef.x)) / float((centroid.y - stableRef.y)));
+    //int t = 5;
+    //secondMire.x = round(stableRef.x + t*(centroid.y - stableRef.y));
+    //secondMire.y = round(stableRef.y + t*(centroid.x - stableRef.x));
+    cv::circle(*debugFrame, firstMire, 10, Scalar(0,255,0), 3);
+    cv::circle(*debugFrame, secondMire, 10, Scalar(0,255,0), 3);
+    cv::line(*debugFrame, axeX, stableRef, debugFingerTipColor);
+    cv::line(*debugFrame, secondMire, stableRef, debugFingerTipColor);
+    cv::line(*debugFrame, firstMire, stableRef, debugFingerTipColor);
+
     // Replace last point, in order to order (haha) fingerTips
     while ( fingerTips[0].x > fingerTips[fingerTips.size()-1].x ) {
         fingerTips.push_back(fingerTips[0]);
@@ -427,15 +419,29 @@ int XnVHandTracker::fingerTipsIdentification(vector<Point> &fingerTips, Point ce
     cv::circle(*debugFrame, centroid, 10, debugFingerTipColor, 3);
     cv::line(*debugFrame, centroid, stableRef, debugFingerTipColor);
     for ( int i=0; i < fingerTips.size(); i++ ) {
+        // Calculate angle between secondMire and finger
+        Point v12 = fingerTips[i] - secondMire;
+        Point v22 = stableRef - secondMire;
+        float angle2 =  asin( ( v12.x*v22.y - v12.y*v22.x ) / (norm(v12) * norm(v22)) );
+        float length2 = sqrt(pow((fingerTips[i].x - secondMire.x), 2) + pow((fingerTips[i].y - secondMire.y), 2));
+        //std::cout << i+1 << " - angle2: " << angle2 << ", length2: " << length2 << std::endl;
+        // Calculate angle between secondMire and finger
+        Point v11 = fingerTips[i] - firstMire;
+        Point v21 = stableRef - firstMire;
+        float angle1 =  asin( ( v11.x*v21.y - v11.y*v21.x ) / (norm(v11) * norm(v21)) );
+        float length1 = sqrt(pow((fingerTips[i].x - firstMire.x), 2) + pow((fingerTips[i].y - firstMire.y), 2));
+        //std::cout << i+1 << " - angle1: " << angle1 << ", length1: " << length1 << std::endl;
+
         // Calculate angle between new axe and finger
         Point v1 = fingerTips[i] - stableRef;
         Point v2 = centroid - stableRef;
         float angle =  asin( ( v1.x*v2.y - v1.y*v2.x ) / (norm(v1) * norm(v2)) );
+        diSymetrie += angle;
         float gap(0);
         float length = sqrt(pow((fingerTips[i].x - centroid.x), 2) + pow((fingerTips[i].y - centroid.y), 2));
         if ( i != 0 ) 
             gap = sqrt(pow((fingerTips[i].x - fingerTips[i-1].x), 2) + pow((fingerTips[i].y - fingerTips[i-1].y), 2));
-        std::cout << i+1 << " - angle: " << angle << ", length: " << length << ", gap: " << gap << std::endl;
+        //std::cout << i+1 << " - angle: " << angle << ", length: " << length << ", gap: " << gap << std::endl;
 
         // Identifying each finger
         Blob blob;
@@ -444,13 +450,18 @@ int XnVHandTracker::fingerTipsIdentification(vector<Point> &fingerTips, Point ce
         blob.coordinates.Y = fingerTips[i].y;
         blob.coordinates.Z = depthMat.at<float>(fingerTips[i].x, fingerTips[i].y);
         blob.length = length;
-        blob.lastGap = gap;
         blob.angle = angle;
+        blob.lengthMire1 = length1;
+        blob.angleMire1 = angle1;
+        blob.lengthMire2 = length2;
+        blob.angleMire2 = angle2;
+        blob.lastGap = gap;
 
         //if ( (blob.id = getFingerId(blob, lastId, probableId)) > 0 ) {
         Fingers.push_back(blob);
     }
-    if ( writeSVMFormat(debugFrame) < 0 )
+    //std::cout << "Disymetrie meter: " << diSymetrie << std::endl;
+    if ( writeSVMFormat(debugFrame, diSymetrie) < 0 )
         return -1;
     return 0;
 }

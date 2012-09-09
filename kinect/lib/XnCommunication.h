@@ -5,7 +5,9 @@
 //#include <iostream>
 #include <sstream>
 //#include <string>
-#include <TuioServer.h>
+//#include <TuioServer.h>
+#include <vector>
+#include <queue>
 #include <list>
 #include <boost/asio.hpp>
 #include "HandTracker.h"
@@ -21,16 +23,20 @@ class XnCommunication
 public:
 	XnCommunication();
 	XnCommunication(std::string ip, int port);
-    void tuioInit(bool verbose);
-    void tuioBlobUpdate(float leader[]);
-    void tuioBlobUpdate(XnVHandTracker* Blob);
-    void tuioCommit();
-    int socketConnection(std::string jsonMsg);
+    //void tuioInit(bool verbose);
+    //void tuioBlobUpdate(float leader[]);
+    //void tuioBlobUpdate(XnVHandTracker* Blob);
+    //void tuioCommit();
+    //void updateBuffer();
+    void composeJsonMsg(XnVHandTracker* Blob);
+    //int socketConnection(std::string jsonMsg);
 
 protected:
-    TUIO::TuioServer* tuio;
-    TUIO::TuioTime time;
+    //TUIO::TuioServer* tuio;
+    //TUIO::TuioTime time;
     std::string clientIp;
+    std::vector<bool> trackedHand;
+    std::queue< std::vector<bool> > handBuffer;
     int clientPort;
     int dim[4];
 };

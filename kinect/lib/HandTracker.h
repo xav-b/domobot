@@ -33,15 +33,16 @@ typedef struct
 {
     int hand;
     int id;
+    int state;
     bool contact;
     XnPoint3D coordinates;
-    float discriminantAngle;
     float length;
-    float lastGap;
-    float nextGap;
     float angle;
-    float lastAngle;
-    float nextAngle;
+    float lengthMire1;
+    float angleMire1;
+    float lengthMire2;
+    float angleMire2;
+    float lastGap;
 } Blob;
 
 std::string PrintSessionState(SessionState eState);
@@ -111,7 +112,7 @@ public:
      */
     int getFingerId(Blob blob, int lastId, int probableId);
 
-    int writeSVMFormat(Mat *debugFrame);
+    int writeSVMFormat(Mat *debugFrame, float diSymetrie);
 
 protected:
 	XnBool IsTouching(XnUInt32 nID) const;
@@ -121,7 +122,7 @@ protected:
     Scalar m_color;
 
     XnPoint3D m_pointTracked;
-    std::vector<Point> m_poignet;
+    //std::vector<Point> m_poignet;
     std::vector<Blob> Fingers;
 };
 
