@@ -169,6 +169,9 @@ int main(int argc, char ** argv)
     uint16_t maxDepth = depthMD.ZRes();
     printf("[DEBUG] Max depth: %d\n", maxDepth);  // Doesn't work !
 
+    // New !!
+    //IplImage *depthImage = cvCreateImage (cvSize( depthMD.FullXRes(), depthMD.FullYRes() ), IPL_DEPTH_16U, 1);
+
 	// Create NITE objects
 	g_pSessionManager = new XnVSessionManager;
 	rc = g_pSessionManager->Initialize(&g_Context, "Click,Wave", "RaiseHand");
@@ -214,8 +217,9 @@ int main(int argc, char ** argv)
         return 1;
     }
 
-    // **** Network Init
+    // **** TUIO Init
     XnCommunication network(pt.get("client.ip", "127.0.0.1"), pt.get("client.port", 3333));
+    //network.tuioInit(globalConf["debug"]);
     //----------------------------------------------------------------------------------------
     float rh[3];
     vector<Point> handContour, fingerTips;
@@ -244,8 +248,11 @@ int main(int argc, char ** argv)
 
             // ---- FingerTips recognition ----------------------------------------------------
             //if ( g_pHand->fingerTipsIdentification(fingerTips, centroid, &depthMatBgr) == 0 ) {
-                //cout << "[INFO] Valid frame, sending cursors\n\n";
-                // ---- Network transaction ---------------------------------------------------
+                //cout << "[INFO] Valid frame, updating tuio objects\n\n";
+                // ---- TUIO transaction ------------------------------------------------------
+                //network.tuioBlobUpdate(rh);
+                //network.tuioBlobUpdate(g_pHand);
+                //network.tuioCommit();
                 network.composeJsonMsg(rh);
                 //network.composeJsonMsg(g_pHand);
                 // ----------------------------------------------------------------------------

@@ -1,7 +1,11 @@
 #ifndef DEF_COMM_H
 #define DEF_COMM_H
  
+//#include "HandTracker.cpp"
+//#include <iostream>
 #include <sstream>
+//#include <string>
+//#include <TuioServer.h>
 #include <vector>
 #include <queue>
 #include <list>
@@ -19,12 +23,19 @@ class XnCommunication
 public:
 	XnCommunication();
 	XnCommunication(std::string ip, int port);
+    //void tuioInit(bool verbose);
+    //void tuioBlobUpdate(float leader[]);
+    //void tuioBlobUpdate(XnVHandTracker* Blob);
+    //void tuioCommit();
+    //void updateBuffer();
     void composeJsonMsg(XnVHandTracker* Blob);
     void composeJsonMsg(float leader[]);
     void shutdown();
     //int socketConnection(std::string jsonMsg);
 
 protected:
+    //TUIO::TuioServer* tuio;
+    //TUIO::TuioTime time;
     std::string clientIp;
     std::vector<bool> trackedHand;
     std::queue< std::vector<bool> > handBuffer;
