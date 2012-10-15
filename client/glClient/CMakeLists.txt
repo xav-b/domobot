@@ -31,7 +31,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 ## Include Files #######################################
-set(SOURCES glKinectClient.cpp)
+set(SOURCES protoMain.cpp)
 message(STATUS "sources: " ${SOURCES})
 add_executable(glKinectClient ${SOURCES})
 

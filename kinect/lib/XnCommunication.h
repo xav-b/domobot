@@ -29,7 +29,7 @@ protected:
     std::vector<bool> trackedHand;
     std::queue< std::vector<bool> > handBuffer;
     int clientPort;
-    int dim[4];
+    int dim[6];
 };
 
 #endif

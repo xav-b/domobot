@@ -1,4 +1,17 @@
+#include <map>
+#include <vector>
+
 using namespace boost::property_tree;
+
+//typedef struct 
+//{
+    //int id;
+    //int state;
+    //float xAngle;
+    //float yAngle;
+    //float zAngle;
+//} Blob;
+std::vector< std::map<std::string, float> > hand(6);
 
 class networkHandler
 {
@@ -52,27 +65,26 @@ public:
             connfd = accept(_server_sockfd, (sockaddr*)NULL, 0);
             std::cout << "Client connected\n";
             while (recv_length > 0) {
-                std::stringstream ss;
+                int i(0);
                 recv_length = recv(connfd, &buf, sizeof(buf), 0);
-                //g_cursorsMutex.lock();
                 buf[recv_length] = '\0';
-                std::cout << buf << std::endl;;
+                std::cout << buf << " - (" << recv_length << ")\n";
                 if (buf[0] == ';') 
-                    break;
+                    break; 
+                //g_cursorsMutex.lock();
+                std::stringstream ss;
                 ss << buf;
                 read_json(ss, pt);
-                id = pt.get("id", -1);
-                state = pt.get("state", -2);
-                //xAngle = pt.get("X", -1.0) * win.width;
-                xAngle = pt.get("X", -1.0);
-                yAngle = pt.get("Y", -1.0);
-                zAngle = pt.get("Z", -1.0);
-                for ( ptree::iterator itRoot = pt.begin(); itRoot != pt.end(); itRoot++ )
-                    std::cout << itRoot->first << " - " << itRoot->second.data();
-                std::cout << std::endl;
+                for ( ptree::iterator itRoot = pt.begin(); itRoot != pt.end(); itRoot++ ) {
+                    ptree ptChild = pt.get_child(itRoot->first);
+                    i++;
+                    for ( ptree::iterator itChild = ptChild.begin(); itChild != ptChild.end(); itChild++ ) {
+                        hand[i][itChild->first] = atof((itChild->second.data()).c_str());
+                    }
+                }
                 //g_cursorsMutex.unlock();
-                glutPostRedisplay();
             }
+            //glutPostRedisplay();
             std::cout << "[I] Ending thread\n";
             close(connfd);
         } 

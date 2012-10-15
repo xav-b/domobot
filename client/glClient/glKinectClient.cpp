@@ -21,7 +21,6 @@ float zAngle;
 #define KEY_ESCAPE 27
 #define CHKERR if (glGetError() != GL_NO_ERROR) printf("** I screwed up something\n");
 
-
 using namespace std;
 
 static int windowId;
@@ -104,7 +103,7 @@ void display(void) {
     glTranslatef(-xAngle, 0.0, 0.0);
     glTranslatef(0.0, -yAngle, 0.0);
     glTranslatef(0.0, 0.0, -zAngle);
-    std::cout << id << ": Translating cube (" << state <<  ") -> " << xAngle << " - " << yAngle << " - " << zAngle << std::endl;
+    std::cout << id << ": Translating cube (" << state <<  ") -> " << xAngle << " - " << yAngle << " - " << zAngle << std::endl << std::endl;
     //glutWireTorus(0.5, 2, 10, 30);
     glutWireCube(1);
 
@@ -162,6 +161,7 @@ int main(int argc, char** argv, char** envp) {
     nh();
     if ( nh.running() )
         std::cout << "Process running\n";
+
     // Callback functions
     // See timer 
     glutDisplayFunc(display);

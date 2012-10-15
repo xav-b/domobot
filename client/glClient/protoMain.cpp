@@ -9,7 +9,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "networkHandler.cpp"
+int id;
+int state;
+float xAngle;
+float yAngle;
+float zAngle;
+
+#include "networkHandler.h"
 
 int main(int argc, char* argv[])
 {

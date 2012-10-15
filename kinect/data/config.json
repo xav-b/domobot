@@ -15,7 +15,7 @@
         "tolerance": 100,
         "angleMax": 1,
         "cutoffCoeff": 0.1,
-        "cycle": 40,
+        "cycle": 50,
         "fingerDistinct": 0.5
     },
     "client":

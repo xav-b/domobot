@@ -170,9 +170,7 @@ void XnVHandTracker::getPosition(float *v, XnUInt32 Id) {
     std::map<XnUInt32, XnPoint3D>::const_iterator PointIterator;
     if ( Id == -1 ) {   // Second Hand
         // Handle each hand
-        for ( PointIterator = m_handsPosition.begin();
-           PointIterator != m_handsPosition.end();
-          ++PointIterator ) {
+        for ( PointIterator = m_handsPosition.begin(); PointIterator != m_handsPosition.end(); ++PointIterator ) {
             XnUInt32 handId = PointIterator->first;
             if ( handId != GetPrimaryID() ) {
                 v[0] = PointIterator->second.X;
@@ -184,9 +182,7 @@ void XnVHandTracker::getPosition(float *v, XnUInt32 Id) {
     else {      
         if ( Id == 0 )  // Primary hand
             Id = GetPrimaryID();
-        for ( PointIterator = m_handsPosition.begin();
-           PointIterator != m_handsPosition.end();
-          ++PointIterator ) {
+        for ( PointIterator = m_handsPosition.begin(); PointIterator != m_handsPosition.end(); ++PointIterator ) {
             XnUInt32 handId = PointIterator->first;
             if ( Id == handId ) {
                 v[0] = PointIterator->second.X;
@@ -419,49 +415,40 @@ int XnVHandTracker::fingerTipsIdentification(vector<Point> &fingerTips, Point ce
     cv::circle(*debugFrame, centroid, 10, debugFingerTipColor, 3);
     cv::line(*debugFrame, centroid, stableRef, debugFingerTipColor);
     for ( int i=0; i < fingerTips.size(); i++ ) {
+        Blob blob;
         // Calculate angle between secondMire and finger
         Point v12 = fingerTips[i] - secondMire;
         Point v22 = stableRef - secondMire;
-        float angle2 =  asin( ( v12.x*v22.y - v12.y*v22.x ) / (norm(v12) * norm(v22)) );
-        float length2 = sqrt(pow((fingerTips[i].x - secondMire.x), 2) + pow((fingerTips[i].y - secondMire.y), 2));
-        //std::cout << i+1 << " - angle2: " << angle2 << ", length2: " << length2 << std::endl;
+        blob.angleMire2 =  asin( ( v12.x*v22.y - v12.y*v22.x ) / (norm(v12) * norm(v22)) );
+        blob.lengthMire2 = sqrt(pow((fingerTips[i].x - secondMire.x), 2) + pow((fingerTips[i].y - secondMire.y), 2));
         // Calculate angle between secondMire and finger
         Point v11 = fingerTips[i] - firstMire;
         Point v21 = stableRef - firstMire;
-        float angle1 =  asin( ( v11.x*v21.y - v11.y*v21.x ) / (norm(v11) * norm(v21)) );
-        float length1 = sqrt(pow((fingerTips[i].x - firstMire.x), 2) + pow((fingerTips[i].y - firstMire.y), 2));
-        //std::cout << i+1 << " - angle1: " << angle1 << ", length1: " << length1 << std::endl;
+        blob.angleMire1 =  asin( ( v11.x*v21.y - v11.y*v21.x ) / (norm(v11) * norm(v21)) );
+        blob.lengthMire1 = sqrt(pow((fingerTips[i].x - firstMire.x), 2) + pow((fingerTips[i].y - firstMire.y), 2));
 
         // Calculate angle between new axe and finger
         Point v1 = fingerTips[i] - stableRef;
         Point v2 = centroid - stableRef;
-        float angle =  asin( ( v1.x*v2.y - v1.y*v2.x ) / (norm(v1) * norm(v2)) );
-        diSymetrie += angle;
-        float gap(0);
-        float length = sqrt(pow((fingerTips[i].x - centroid.x), 2) + pow((fingerTips[i].y - centroid.y), 2));
+        blob.angle =  asin( ( v1.x*v2.y - v1.y*v2.x ) / (norm(v1) * norm(v2)) );
+        diSymetrie += blob.angle;
+        blob.lastGap = 0;
+        blob.length = sqrt(pow((fingerTips[i].x - centroid.x), 2) + pow((fingerTips[i].y - centroid.y), 2));
         if ( i != 0 ) 
-            gap = sqrt(pow((fingerTips[i].x - fingerTips[i-1].x), 2) + pow((fingerTips[i].y - fingerTips[i-1].y), 2));
-        //std::cout << i+1 << " - angle: " << angle << ", length: " << length << ", gap: " << gap << std::endl;
+            blob.lastGap = sqrt(pow((fingerTips[i].x - fingerTips[i-1].x), 2) + pow((fingerTips[i].y - fingerTips[i-1].y), 2));
 
         // Identifying each finger
-        Blob blob;
         blob.hand = 1;  //ie left hand
         blob.coordinates.X = fingerTips[i].x;
         blob.coordinates.Y = fingerTips[i].y;
-        blob.coordinates.Z = depthMat.at<float>(fingerTips[i].x, fingerTips[i].y);
-        blob.length = length;
-        blob.angle = angle;
-        blob.lengthMire1 = length1;
-        blob.angleMire1 = angle1;
-        blob.lengthMire2 = length2;
-        blob.angleMire2 = angle2;
-        blob.lastGap = gap;
+        blob.coordinates.Z = depthMat8.data[(fingerTips[i].y * 640) + fingerTips[i].x];
 
         //if ( (blob.id = getFingerId(blob, lastId, probableId)) > 0 ) {
+        blob.id = i+1;
         Fingers.push_back(blob);
     }
     //std::cout << "Disymetrie meter: " << diSymetrie << std::endl;
-    if ( writeSVMFormat(debugFrame, diSymetrie) < 0 )
-        return -1;
+    //if ( writeSVMFormat(debugFrame, diSymetrie) < 0 )
+        //return -1;
     return 0;
 }

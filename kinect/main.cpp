@@ -236,22 +236,22 @@ int main(int argc, char ** argv)
             bool grasp = g_pHand->computeConvex(handContour, &depthMatBgr) > detectConf["grabConvexity"];
             int thickness = grasp ? CV_FILLED : 3;
             circle(depthMatBgr, Point(rh[0], rh[1]), 10, color, thickness);
-            //g_pHand->detectFingerTips(handContour, fingerTips, &depthMatBgr, detectConf["angleMax"], detectConf["cutoffCoeff"]);
+            g_pHand->detectFingerTips(handContour, fingerTips, &depthMatBgr, detectConf["angleMax"], detectConf["cutoffCoeff"]);
 
-            //Moments mu = moments(handContour, false);
-            //Point centroid = Point( mu.m10/mu.m00 , mu.m01/mu.m00 );
-            //circle( depthMatBgr, centroid, 8, Scalar(255,0,0), -1, 8, 0  );
+            Moments mu = moments(handContour, false);
+            Point centroid = Point( mu.m10/mu.m00 , mu.m01/mu.m00 );
+            circle( depthMatBgr, centroid, 8, Scalar(255,0,0), -1, 8, 0  );
 
             // ---- FingerTips recognition ----------------------------------------------------
-            //if ( g_pHand->fingerTipsIdentification(fingerTips, centroid, &depthMatBgr) == 0 ) {
-                //cout << "[INFO] Valid frame, sending cursors\n\n";
+            if ( g_pHand->fingerTipsIdentification(fingerTips, centroid, &depthMatBgr) == 0 ) {
+                cout << "[INFO] Valid frame, sending cursors\n\n";
                 // ---- Network transaction ---------------------------------------------------
-                network.composeJsonMsg(rh);
-                //network.composeJsonMsg(g_pHand);
+                //network.composeJsonMsg(rh);
+                network.composeJsonMsg(g_pHand);
                 // ----------------------------------------------------------------------------
-            //} 
-            //else
-                //cout << "[INFO] ** trash frame !\n\n";
+            } 
+            else
+                cout << "[INFO] ** trash frame !\n\n";
         }
         //putText(depthMatBgr, trackedInfos, Point(rh[0]-50,rh[1]-50), FONT_HERSHEY_TRIPLEX, 1, Scalar(0, 0, 0, 0), 2);
         if ( globalConf["graphic"] )
