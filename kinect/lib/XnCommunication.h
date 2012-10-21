@@ -8,7 +8,8 @@
 #include <boost/asio.hpp>
 #include "HandTracker.h"
 
-#define SERVER_IP "127.0.0.1"
+#define SERVER_IP "192.168.0.15"
+//#define SERVER_IP "127.0.0.1"
 #define SERVER_PORT "10002"
 
 /**
@@ -19,7 +20,7 @@ class XnCommunication
 public:
 	XnCommunication();
 	XnCommunication(std::string ip, int port);
-    void composeJsonMsg(XnVHandTracker* Blob);
+    void composeJsonMsg(XnVHandTracker* Blob, float leader[]);
     void composeJsonMsg(float leader[]);
     void shutdown();
     //int socketConnection(std::string jsonMsg);

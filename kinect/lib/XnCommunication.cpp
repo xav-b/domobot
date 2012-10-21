@@ -44,7 +44,7 @@ void XnCommunication::composeJsonMsg(float leader[]) {
     std::cout << ss.str() << std::endl;
 }
 
-void XnCommunication::composeJsonMsg(XnVHandTracker* Blob) {
+void XnCommunication::composeJsonMsg(XnVHandTracker* Blob, float leader[]) {
     /*
      *trackedHand.clear();
      *for (int i = 1; i < 6; i++) {
@@ -53,6 +53,7 @@ void XnCommunication::composeJsonMsg(XnVHandTracker* Blob) {
      *trackedHand[0] = true;
      */
     std::ostringstream ss;
+    //ss << "{\"leader\": {\"id\":" << 0 << ", \"state\":" << 0 << ", \"X\":" << leader[0]/dim[1] << ", \"Y\":" << leader[1]/dim[3] << ", \"Z\":" << leader[2] << "}, ";
     ss << "{";
     for (int i = 0; i < Blob->Fingers.size(); i++ ) {
         ss << "\"blob" << i << "\": {";

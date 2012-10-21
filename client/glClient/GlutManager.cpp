@@ -1,67 +1,10 @@
-#include <GL/gl.h>
-#include <GL/glut.h>
-#include <iostream>
-#include <boost/thread/thread.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <netinet/in.h>
-
-boost::mutex g_cursorsMutex;
-int id;
-int state;
-float xAngle;
-float yAngle;
-float zAngle;
-
-#define KEY_ESCAPE 27
-#define CHKERR if (glGetError() != GL_NO_ERROR) printf("** I screwed up something\n");
+#include "GlutManager.h"
 
 using namespace std;
 
-static int windowId;
-int pressed;
+GlutManager::GlutManager() {}
 
-typedef struct {
-	int width;
-	int height;
-	string title;	
-	float view_angle;
-	float z_near;
-	float z_far;
-} glutWindow;
-glutWindow win;
-
-typedef struct {
-    float eye_x;
-    float eye_y;
-    float eye_z;
-    float observed_x;
-    float observed_y;
-    float observed_z;
-    float sky_x;
-    float sky_y;
-    float sky_z;
-} glutGlass;
-glutGlass glass;
-
-typedef struct {
-    float x;
-    float y;
-    float z;
-    float r;
-    float g;
-    float b;
-} point3D;
-
-#include "networkHandler.h"
-
-// Keyboard events handler
-void keyboardHandler(unsigned char key, int x, int y) {
+void GlutManager::keyboardHandler(unsigned char key, int x, int y) {
     switch(key) {
         case KEY_ESCAPE:
             cout << "Exiting...\n";
@@ -77,28 +20,36 @@ void keyboardHandler(unsigned char key, int x, int y) {
 	    break;
     }
     glutPostRedisplay();
+    return NULL;
 }
 
 // Mouse events handler
-void mouseHandler(int button, int state, int x, int y) {
+void GlutManager::mouseHandler(int button, int state, int x, int y) {
     if ( (button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN)) 
         pressed = 1;
     if ( (button == GLUT_LEFT_BUTTON) && (state == GLUT_UP)) 
         pressed = 0;
+    return NULL;
 }
-void pMouseMotionHandler(int x, int y) {}
+
+void *GlutManager::pMouseMotionHandler(int x, int y) {
+    return NULL;
+}
 
 // Background process handler, for animation use
-void idle(void) {}
+void *GlutManager::idle(void) {
+    return NULL;
+}
 
-void reshape(int x, int y) {
+void *GlutManager::reshape(int x, int y) {
     if ( x < y )
         glViewport(0, (y-x)/2, x, x);
     else
         glViewport((x-y)/2, 0, y, y);
+    return NULL;
 }
 
-void display(void) {
+void *GlutManager::display(void) {
     /* Cleaning screen */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -120,18 +71,19 @@ void display(void) {
     /* Moving objects */
     //glRotated(-xAngle/2, 1.0, 0.0, 0.0);
     //glRotated(-yAngle/2, 0.0, 1.0, 0.0);
-    glTranslatef(-xAngle, 0.0, 0.0);
-    glTranslatef(0.0, -yAngle, 0.0);
-    glTranslatef(0.0, 0.0, -zAngle);
-    std::cout << id << ": Translating cube (" << state <<  ") -> " << xAngle << " - " << yAngle << " - " << zAngle << std::endl << std::endl;
+    //glTranslatef(-xAngle, 0.0, 0.0);
+    //glTranslatef(0.0, -yAngle, 0.0);
+    //glTranslatef(0.0, 0.0, -zAngle);
+    //std::cout << id << ": Translating cube (" << state <<  ") -> " << xAngle << " - " << yAngle << " - " << zAngle << std::endl << std::endl;
     //glutWireTorus(0.5, 2, 10, 30);
     glutWireCube(1);
 
     /* Updating opengl server */
     glutSwapBuffers();
+    return NULL;
 }
 
-void initialize() {
+void GlutManager::initialize() {
     glMatrixMode(GL_PROJECTION);				
     glViewport(0, 0, win.width, win.height);			
     glMatrixMode(GL_PROJECTION);
@@ -147,8 +99,8 @@ void initialize() {
     glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
-int main(int argc, char** argv, char** envp) {
-    // Window init
+void GlutManager::mainLoop(int argc, char** argv) {
+// Window init
     win.width = 640;
     win.height = 480;
     win.title = "OpenGL/GLUT Window.";
@@ -178,20 +130,7 @@ int main(int argc, char** argv, char** envp) {
     //glutFullScreen();
 
     // Matrix init
-    xAngle = 0;
-    yAngle = 0;
-    zAngle = 0;
     pressed = 0;
-
-    // Network retriever launcher
-    std::cout << "main: startup" << std::endl;
-    networkHandler nh(10002);
-    nh.init();
-    nh.start();
-    std::cout << "main: waiting for thread" << std::endl;
-    nh();
-    if ( nh.running() )
-        std::cout << "Process running\n";
 
     // Callback functions
     // See timer 
@@ -202,11 +141,10 @@ int main(int argc, char** argv, char** envp) {
     glutPassiveMotionFunc(pMouseMotionHandler);
     glutReshapeFunc(reshape);
 
-    initialize();
+    //initialize();
     glutMainLoop();
 
-    nh.join();
     std::cout << "main: done" << std::endl;
-
-    return 0;
+    return;
 }
+

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 # Project Name
-project(glKinectClient)
+project(preClass)
 
 ## FIND GLUT ###########################################
 # sudo apt-get install libxmu-dev libxi-dev
@@ -31,15 +31,15 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 ## Include Files #######################################
-set(SOURCES protoMain.cpp)
+set(SOURCES preClass.cpp)
 message(STATUS "sources: " ${SOURCES})
-add_executable(glKinectClient ${SOURCES})
+add_executable(preClass ${SOURCES})
 
 ## Linking & stuff ######################################
 
-# create the program "glKinectClient"
-target_link_libraries(glKinectClient ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${Boost_LIBRARIES})
+# create the program "preClass"
+target_link_libraries(preClass ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${Boost_LIBRARIES})
 
-#add_custom_command(TARGET glKinectClient
+#add_custom_command(TARGET preClass
 #    POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy glKinectClient ../)
+#    COMMAND ${CMAKE_COMMAND} -E copy preClass ../)
