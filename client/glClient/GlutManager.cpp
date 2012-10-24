@@ -4,7 +4,7 @@ using namespace std;
 
 GlutManager::GlutManager() {}
 
-void GlutManager::keyboardHandler(unsigned char key, int x, int y) {
+static void GlutManager::keyboardHandler(unsigned char key, int x, int y) {
     switch(key) {
         case KEY_ESCAPE:
             cout << "Exiting...\n";
@@ -20,36 +20,31 @@ void GlutManager::keyboardHandler(unsigned char key, int x, int y) {
 	    break;
     }
     glutPostRedisplay();
-    return NULL;
 }
 
 // Mouse events handler
-void GlutManager::mouseHandler(int button, int state, int x, int y) {
+static void GlutManager::mouseHandler(int button, int state, int x, int y) {
     if ( (button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN)) 
         pressed = 1;
     if ( (button == GLUT_LEFT_BUTTON) && (state == GLUT_UP)) 
         pressed = 0;
-    return NULL;
 }
 
-void *GlutManager::pMouseMotionHandler(int x, int y) {
-    return NULL;
+static void GlutManager::pMouseMotionHandler(int x, int y) {
 }
 
 // Background process handler, for animation use
-void *GlutManager::idle(void) {
-    return NULL;
+static void GlutManager::idle(void) {
 }
 
-void *GlutManager::reshape(int x, int y) {
+static void GlutManager::reshape(int x, int y) {
     if ( x < y )
         glViewport(0, (y-x)/2, x, x);
     else
         glViewport((x-y)/2, 0, y, y);
-    return NULL;
 }
 
-void *GlutManager::display(void) {
+static void GlutManager::display(void) {
     /* Cleaning screen */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -80,7 +75,6 @@ void *GlutManager::display(void) {
 
     /* Updating opengl server */
     glutSwapBuffers();
-    return NULL;
 }
 
 void GlutManager::initialize() {

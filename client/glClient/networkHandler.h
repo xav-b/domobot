@@ -68,7 +68,7 @@ public:
                 int i(0);
                 recv_length = recv(connfd, &buf, sizeof(buf), 0);
                 buf[recv_length] = '\0';
-                std::cout << buf << " - (" << recv_length << ")\n";
+                //std::cout << buf << " - (" << recv_length << ")\n";
                 if (buf[0] == ';') 
                     break; 
                 //g_cursorsMutex.lock();

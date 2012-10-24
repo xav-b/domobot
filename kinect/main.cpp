@@ -246,7 +246,7 @@ int main(int argc, char ** argv)
             if ( g_pHand->fingerTipsIdentification(fingerTips, centroid, &depthMatBgr) == 0 ) {
                 cout << "[INFO] Valid frame, sending cursors\n\n";
                 // ---- Network transaction ---------------------------------------------------
-                network.composeJsonMsg(rh);
+                //network.composeJsonMsg(rh);
                 network.composeJsonMsg(g_pHand, rh);
                 // ----------------------------------------------------------------------------
             } 

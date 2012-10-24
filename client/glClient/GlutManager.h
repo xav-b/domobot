@@ -53,12 +53,12 @@ class GlutManager
     public:
         GlutManager();
         ~GlutManager();
-		void (*keyboardHandler)(unsigned char key, int x, int y);
-		void (*mouseHandler)(int button, int state, int x, int y);
-		void *pMouseMotionHandler(int x, int y);
-		void *idle(void);
-		void *reshape(int x, int y);
-		void *display(void);
+		static void keyboardHandler(unsigned char key, int x, int y);
+		static void mouseHandler(int button, int state, int x, int y);
+		static void pMouseMotionHandler(int x, int y);
+		static void idle(void);
+		static void reshape(int x, int y);
+		static void display(void);
 		void initialize();
 		void mainLoop(int argc, char** argv);
 

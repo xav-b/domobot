@@ -89,7 +89,7 @@ void mouseHandler(int button, int state, int x, int y) {
 void pMouseMotionHandler(int x, int y) {}
 
 // Background process handler, for animation use
-void idle(void) {}
+void idle(void) {glutPostRedisplay();}
 
 void reshape(int x, int y) {
     if ( x < y )
@@ -102,6 +102,7 @@ void display(void) {
     /* Cleaning screen */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    /* Managing camera */
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
     gluPerspective(win.view_angle, // Fovy
@@ -109,25 +110,38 @@ void display(void) {
                    win.z_near, // Near
                    win.z_far); // Far
 
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-
-    /* Calibrating camera */
     gluLookAt(glass.eye_x, glass.eye_y, glass.eye_z,
             glass.observed_x, glass.observed_y, glass.observed_z,
             glass.sky_x, glass.sky_y, glass.sky_z);
 
+    /* Drawing the labo */
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity();
+
+    GLint i;
+    glBegin(GL_LINES);
+    for ( i = -10; i <= 10; i++ ) {
+        glVertex3i(i, 0, -10 );
+        glVertex3i(i, 0, 10);
+    }
+    for ( i = -10; i <= 10; i++ ) {
+        glVertex3i(-10, 0, i);
+        glVertex3i(10, 0, i);
+    }
+    glEnd();
+
     /* Moving objects */
-    //glRotated(-xAngle/2, 1.0, 0.0, 0.0);
-    //glRotated(-yAngle/2, 0.0, 1.0, 0.0);
-    glTranslatef(-xAngle, 0.0, 0.0);
-    glTranslatef(0.0, -yAngle, 0.0);
-    glTranslatef(0.0, 0.0, -zAngle);
-    std::cout << id << ": Translating cube (" << state <<  ") -> " << xAngle << " - " << yAngle << " - " << zAngle << std::endl << std::endl;
-    //glutWireTorus(0.5, 2, 10, 30);
-    glutWireCube(1);
+    for ( int i = 0; i < 6; i++ ) {
+        glPushMatrix();
+        glTranslatef(-hand[i]["X"]*30, 0.0, 0.0);
+        glTranslatef(0.0, -hand[i]["Y"] * 30, 0.0);
+        glTranslatef(0.0, 0.0, -hand[i]["Z"] * 30);
+        glutWireSphere(1 /*radius*/, 20 /*slices*/, 20 /*stacks*/);
+        glPopMatrix();
+    }
 
     /* Updating opengl server */
+    //glFlush();
     glutSwapBuffers();
 }
 
@@ -152,7 +166,7 @@ int main(int argc, char** argv, char** envp) {
     win.width = 640;
     win.height = 480;
     win.title = "OpenGL/GLUT Window.";
-    win.view_angle = 70;
+    win.view_angle = 80;
     win.z_near = 1.0f;
     win.z_far = 500.0f;
 

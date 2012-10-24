@@ -38,8 +38,8 @@ XnCommunication::XnCommunication(string ip, int port) : clientIp(ip), clientPort
 
 void XnCommunication::composeJsonMsg(float leader[]) {
     std::ostringstream ss;
-    //ss << "{\"id\":" << 0 << ", \"state\":" << 0 << ", \"X\":" << m_pointTracked.X/dim[0] << ", \"Y\":" << m_pointTracked.Y/dim[2] << ", \"Z\":" << m_pointTracked.Z << "}";
-    ss << "{\"id\":" << 0 << ", \"state\":" << 0 << ", \"X\":" << leader[0]/dim[1] << ", \"Y\":" << leader[1]/dim[3] << ", \"Z\":" << leader[2] << "}";
+    //ss << "{\"id\":" << 0 << ", \"state\":" << 0 << ", \"X\":" << leader[0]/dim[1] << ", \"Y\":" << leader[1]/dim[3] << ", \"Z\":" << leader[2] << "}";
+    ss << "{\"leader\": {\"id\":" << 0 << ", \"state\":" << 0 << ", \"X\":" << leader[0]/dim[1] << ", \"Y\":" << leader[1]/dim[3] << ", \"Z\":" << leader[2] << "}}";
     socketServer << ss.str();
     std::cout << ss.str() << std::endl;
 }
@@ -53,7 +53,6 @@ void XnCommunication::composeJsonMsg(XnVHandTracker* Blob, float leader[]) {
      *trackedHand[0] = true;
      */
     std::ostringstream ss;
-    //ss << "{\"leader\": {\"id\":" << 0 << ", \"state\":" << 0 << ", \"X\":" << leader[0]/dim[1] << ", \"Y\":" << leader[1]/dim[3] << ", \"Z\":" << leader[2] << "}, ";
     ss << "{";
     for (int i = 0; i < Blob->Fingers.size(); i++ ) {
         ss << "\"blob" << i << "\": {";
