@@ -1,0 +1,11 @@
+#JSGF V1.0;
+
+/**
+ * JSGF Grammar for Flat Voice Commands
+ */
+
+grammar flat_commands;
+
+public <power_control> = Turn ( TV | Light | Music ) (On | Off);
+public <door_control> = (Unlock Door | Open Door);
+

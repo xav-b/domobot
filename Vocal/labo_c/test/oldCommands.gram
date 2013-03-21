@@ -1,0 +1,6 @@
+#JSGF V1.0;
+
+    grammar orders;
+    public <opt> = [<command>] [<command>];
+
+<command> = turn | switch;

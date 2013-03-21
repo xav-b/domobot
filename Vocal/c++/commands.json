@@ -1,0 +1,10 @@
+{
+    "commands":
+    {
+        "key super": "xdotool key super", 
+        "mode normal": "xdotool key Escape", 
+        "mode insert": "xdotool key i",
+        "mode visual": "xdotool key V",
+        "save file": "xdotool type ':w' && xdotool key Return"
+    }
+}

@@ -15,7 +15,6 @@ XnCommunication::XnCommunication() {
      */
     dim[0] = 0;
     dim[1] = 640;
-    dim[2] = 0;
     dim[3] = 480;
     dim[4] = 40;
     dim[5] = 90;

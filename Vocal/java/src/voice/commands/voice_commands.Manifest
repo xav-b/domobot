@@ -1,0 +1,3 @@
+Main-Class: voice.commands.VoiceCommands
+Class-Path: ../lib/sphinx4.jar ../lib/WSJ_8gau_13dCep_16k_40mel_130Hz_6800Hz.jar ../lib/gson-2.2.2.jar
+

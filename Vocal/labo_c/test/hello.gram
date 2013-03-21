@@ -1,0 +1,7 @@
+#JSGF V1.0
+  public <basicCmd> = <startPolite> <command> <endPolite>;
+  <command> = <action> <object>;
+  <action> = open | close | delete | move;
+  <object> = [the | a] (window | file | menu);
+  <startPolite> = (please | kindly | could you | oh mighty computer);
+  <endPolite> = [ please | thanks | thank you ];

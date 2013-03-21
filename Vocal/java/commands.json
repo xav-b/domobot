@@ -1,0 +1,5 @@
+{
+    'unlock door': 'ls', 
+    'turn light off': 'ls -al', 
+    'turn music on': 'pwd'
+}

@@ -133,8 +133,8 @@ int main(int argc, char ** argv)
 	XnStatus rc = XN_STATUS_OK;
 	xn::EnumerationErrors errors;
 
-	// Initialize OpenNI
-	rc = g_Context.InitFromXmlFile(SAMPLE_XML_PATH, g_ScriptNode, &errors);
+    // Initialize OpenNI
+    rc = g_Context.InitFromXmlFile(SAMPLE_XML_PATH, g_ScriptNode, &errors);
 	CHECK_ERRORS(rc, errors, "InitFromXmlFile");
 	CHECK_RC(rc, "InitFromXmlFile");
 
