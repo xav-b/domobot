@@ -10,12 +10,14 @@ import pyaudio, speex
 import numpy as np  # just for doing a standard deviation for audio level checks
 import urllib2
 
-e = speex.Encoder()
-e.initialize(speex.SPEEX_MODEID_WB)
-d = speex.Decoder()
-d.initialize(speex.SPEEX_MODEID_WB)
+#e = speex.Encoder()
+#e.initialize(speex.SPEEX_MODEID_WB)
+e = speex.new()
+#d = speex.Decoder()
+#d.initialize(speex.SPEEX_MODEID_WB)
 
-chunk = 320 # tried other numbers... some don't work
+#chunk = 320 # tried other numbers... some don't work
+chunk = 1024
 FORMAT = pyaudio.paInt16
 bytespersample=2
 CHANNELS = 1

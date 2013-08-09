@@ -7,7 +7,8 @@ OBJ= $(SRC:.c=.o)
 
 LDFLAGS= `pkg-config --cflags --libs pocketsphinx sphinxbase`
 #CONFIG=-DMODELDIR=\"`pkg-config --variable=modeldir pocketsphinx`\"
-POCOFLAGS=-lPocoFoundation
+#POCOFLAGS=-lPocoFoundation
+POCOFLAGS=
 
 ifeq ($(DEBUG),yes)
 	CFLAGS=-W -Wall -ansi -pedantic -g

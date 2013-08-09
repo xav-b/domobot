@@ -1,5 +1,7 @@
 {
-    'unlock door': 'ls', 
-    'turn light off': 'ls -al', 
-    'turn music on': 'pwd'
+    'open browser': 'chromium-browser', 
+    'open terminal': 'gnome-terminal', 
+    'open media': 'vlc', 
+    'save file': 'xdotool key Escape && xdotool comma  && xdotool s',
+    'quit file': 'xdotool key Escape && xdotool key "Z" && xdotool key "Z"'
 }

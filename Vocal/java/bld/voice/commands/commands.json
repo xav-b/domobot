@@ -1,1 +1,7 @@
-{'unlock door': 'ls', 'turn light off': 'ls -al', 'turn on music': 'pwd'}
+{
+    'unlock door': 'ls', 
+    'turn light off': 'ls -al', 
+    'turn on music': 'pwd', 
+    'quit file': 'xdotool key Escape && xdotool comma  && xdotool b',
+    'save file': 'xdotool key Escape && xdotool comma  && xdotool s'
+}

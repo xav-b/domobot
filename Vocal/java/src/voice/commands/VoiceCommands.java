@@ -30,7 +30,8 @@ public class VoiceCommands {
 
     private static DecimalFormat format = new DecimalFormat("#.#####");
     private static String config_commands = "commands.json";
-    public static Thread t;
+    //public static Thread t;
+    public static Runtime runtime = Runtime.getRuntime();
 
     public static void main(String[] args) {
         System.out.print("Loading Sphinx config ... ");
@@ -40,6 +41,7 @@ public class VoiceCommands {
 
         // Create lock commands hash.
         System.out.print("Loading commands config ... ");
+        //TODO Dynamic reconfigration ?
 		String message = getCommand(config_commands);
         Map commands = new Gson().fromJson(message, Map.class);
         System.out.println("Done.");
@@ -87,11 +89,16 @@ public class VoiceCommands {
 
                 //if (cmd != "") {
                 if (commands.containsValue(cmd)) {
-                    System.out.println("Sending Command: " + cmd + '\n');
-                    t = new Thread(new CustomProcess(cmd, "."));
-                    t.start();
+                    System.out.println("Running Command: " + cmd + '\n');
+                    //t = new Thread(new CustomProcess(cmd, "."));
+                    //t.start();
+                    try {
+                        runtime.exec(cmd);
+                    } catch(IOException ioe) {
+			            ioe.printStackTrace();
+		            }
                 } else {
-                    System.out.println("I can't hear what you said.\n");
+                    System.out.println("** I can't get what you meant.\n");
                 }
             }
         }
