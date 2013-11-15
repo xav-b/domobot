@@ -13,15 +13,13 @@ pkg_check_modules(OpenCV REQUIRED opencv)
 find_package(Boost REQUIRED system)
 find_package(Threads)
 
-#include_directories(${OpenCV_INCLUDE_DIRS} ${XnVNite_INCLUDES} ${OpenNI_INCLUDES} ${TUIO_INCLUDES} ${OSC_INCLUDES} ./TUIO ./oscpack) 
 include_directories(${OpenCV_INCLUDE_DIRS} ${XnVNite_INCLUDES} ${OpenNI_INCLUDES} ${TUIO_INCLUDES} ${OSC_INCLUDES}) 
 
 set (CMAKE_C_FLAGS "-c -msse3 -O2 -DNDEBUG")
 
-#add_executable (KinectTuio main.cpp ./TUIO/TuioClient.cpp ./TUIO/TuioServer.cpp ./TUIO/TuioTime.cpp ./oscpack/osc/OscTypes.cpp ./oscpack/osc/OscOutboundPacketStream.cpp ./oscpack/osc/OscReceivedElements.cpp ./oscpack/osc/OscPrintReceivedElements.cpp ./oscpack/ip/posix/NetworkingUtils.cpp ./oscpack/ip/posix/UdpSocket.cpp)
-add_executable(KinectTuio main.cpp)
-target_link_libraries(KinectTuio ${OpenCV_LIBRARIES} ${XnVNite_LIBS} ${OpenNI_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+add_executable(kinnect main.cpp)
+target_link_libraries(kinnect ${OpenCV_LIBRARIES} ${XnVNite_LIBS} ${OpenNI_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
-ADD_CUSTOM_COMMAND(TARGET KinectTuio
+ADD_CUSTOM_COMMAND(TARGET kinnect
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy KinectTuio ../)
+    COMMAND ${CMAKE_COMMAND} -E copy kinnect ../)
